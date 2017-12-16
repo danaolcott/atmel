@@ -34,21 +34,21 @@ int main()
 	//register init - DDRB - PortB, DDB5 - Pin5
     //Pins 13 to 8
 	DDRB |= _BV(DDB5);      //PB5 - pin 13 output
-	DDRB |= _BV(DDB4);      //PB5 - pin 12 output
-	DDRB |= _BV(DDB3);      //PB5 - pin 11 output
-	DDRB |= _BV(DDB2);      //PB5 - pin 10 output
-	DDRB |= _BV(DDB1);      //PB5 - pin 9 output
-	DDRB |= _BV(DDB0);      //PB5 - pin 8 output
+	DDRB |= _BV(DDB4);      //PB4 - pin 12 output
+	DDRB |= _BV(DDB3);      //PB3 - pin 11 output
+	DDRB |= _BV(DDB2);      //PB2 - pin 10 output
+	DDRB |= _BV(DDB1);      //PB1 - pin 9 output
+	DDRB |= _BV(DDB0);      //PB0 - pin 8 output
 
     //port d - pins 7 - 0
 	DDRD |= _BV(DDD7);      //PD7 - pin 7 output
-	DDRD |= _BV(DDD6);      //PD7 - pin 6 output
-	DDRD |= _BV(DDD5);      //PD7 - pin 5 output
-	DDRD |= _BV(DDD4);      //PD7 - pin 4 output
-	DDRD |= _BV(DDD3);      //PD7 - pin 3 output
-	DDRD |= _BV(DDD2);      //PD7 - pin 2 output
-	DDRD |= _BV(DDD1);      //PD7 - pin 1 output
-	DDRD |= _BV(DDD0);      //PD7 - pin 0 output
+	DDRD |= _BV(DDD6);      //PD6 - pin 6 output
+	DDRD |= _BV(DDD5);      //PD5 - pin 5 output
+	DDRD |= _BV(DDD4);      //PD4 - pin 4 output
+	DDRD |= _BV(DDD3);      //PD3 - pin 3 output
+	DDRD |= _BV(DDD2);      //PD2 - pin 2 output
+	DDRD |= _BV(DDD1);      //PD1 - pin 1 output
+	DDRD |= _BV(DDD0);      //PD0 - pin 0 output
 
 
     while(1)
