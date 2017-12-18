@@ -26,9 +26,16 @@ STDLIB=__AVR_ATmega328P__
 OBJCOPY=avr-objcopy
 IDIR=/usr/lib/avr/include
 #CFLAGS=-std=c99 -Wall -v -g -Os -mmcu=${MCU} -DF_CPU=${F_CPU} -D${STDLIB} -I. -I${IDIR}
-CFLAGS=-std=c99 -Wall -g -Os -mmcu=${MCU} -DF_CPU=${F_CPU} -D${STDLIB} -I. -I./task
+
+CFLAGS=-std=c99 -Wall -g -Os -mmcu=${MCU} -DF_CPU=${F_CPU} -D${STDLIB}
+CFLAGS+=-I.
+CFLAGS+=-I./task
+
 TARGET=main
-SRCS=main.c ./task/*.c
+
+SRCS=main.c
+SRCS+=./task/task.c
+
 LINUX_PORT=/dev/ttyACM0
 
 all:
