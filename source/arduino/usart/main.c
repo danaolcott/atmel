@@ -25,10 +25,8 @@ system("stty -F /dev/ttyUSB0 115200");
 */
 ///////////////////////////////////////////////
 
-
-#include <avr/io.h>         //macros
 #include <avr/interrupt.h>
-
+#include <avr/io.h>         //macros
 #include <stdio.h>
 #include <string.h>
 
@@ -180,7 +178,7 @@ void Interrupt_init(void)
     EIFR_R |= 0x01;
 
     //enable global interrupts
-    sei();
+    __SEI;
 }
 
 
@@ -217,8 +215,7 @@ void Timer0_init(void)
     TIFR0_R |= 0x01;
 
     //enable global interrupts
-    sei();
-
+    __SEI;
 }
 
 

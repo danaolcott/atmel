@@ -42,6 +42,8 @@
 
 #define TXB8                0
 
+#define __SEI        (SREG_R |= (1u << 7))
+
 
 #endif
 

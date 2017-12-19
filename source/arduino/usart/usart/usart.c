@@ -1,7 +1,7 @@
 
-
-#include <avr/io.h>         //macros
 #include <avr/interrupt.h>
+#include <avr/io.h>         //macros
+
 #include <string.h>
 #include <stdio.h>
 #include <stddef.h>
@@ -97,7 +97,7 @@ void Usart_init(unsigned long baud)
     UCSR0C_R = 0x06;
 
     //enable global interrupts
-    sei();
+    __SEI;
 
     //poll the rx...
     while (RXC0_FLAG){};        //complete any incoming

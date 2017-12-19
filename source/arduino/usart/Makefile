@@ -35,7 +35,7 @@ SRCS=main.c ./usart/usart.c ./command/command.c
 
 
 
-LINUX_PORT=/dev/ttyACM1
+LINUX_PORT=/dev/ttyACM0
 
 all:
 	${CC} ${CFLAGS} -o ${TARGET}.bin ${SRCS}
