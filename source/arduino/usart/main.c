@@ -25,6 +25,7 @@ system("stty -F /dev/ttyUSB0 115200");
 */
 ///////////////////////////////////////////////
 
+
 #include <avr/io.h>         //macros
 #include <avr/interrupt.h>
 
@@ -91,7 +92,7 @@ ISR(TIMER0_OVF_vect)
 
     //clear interrupt - datasheet shows
     //this bit has to be set to run timer
-    TIFR0 |= 0x01;
+    TIFR0_R |= 0x01;
 }
 
 
@@ -197,10 +198,10 @@ void Timer0_init(void)
 
     //Timer Control - 2 registers:
     //TCCR0A - Control = 0x44 - write 0x00 to disable all pin outputs on compare.
-    TCCR0A = 0x00;
+    TCCR0A_R = 0x00;
 
     //TCCR0B - Control = 0x45 - bits 0-2 confiure the prescaler.  dont care for remaining
-    TCCR0B = 0x03;
+    TCCR0B_R = 0x03;
     //    000 - no clock - timer disabled
     //    001 - no prescale
     //    010 - clk/8
@@ -213,7 +214,7 @@ void Timer0_init(void)
     
     //clear interrupt
     //TIFR0 - interrupt flag.  0x15    TOV - write 1 to clear interrupt
-    TIFR0 |= 0x01;
+    TIFR0_R |= 0x01;
 
     //enable global interrupts
     sei();
