@@ -28,8 +28,10 @@ See Makefile
 
 Inludes:  /usr/lib/avr/include
 */
-///////////////////////////////////////////////
-
+//
+////////////////////////////////////////////
+//
+//
 #include <avr/io.h>         //macros
 #include <avr/interrupt.h>
 
@@ -80,6 +82,9 @@ void Timer0_init(void);
 void Timer0_OCCA_init(void);
 
 
+static unsigned long gCycleCounter = 0x00;
+
+
 
 ///////////////////////////////
 //Timer0 Overflow Interrupt ISR
@@ -87,7 +92,6 @@ void Timer0_OCCA_init(void);
 ISR(TIMER0_OVF_vect)
 {
     gTimeTick++;        //used by Delay
-    PINB_R |= BIT3;     //toggle PB3
 }
 
 
@@ -98,7 +102,6 @@ ISR(TIMER0_OVF_vect)
 ISR(TIMER0_COMPA_vect)
 {
     gTimeTick++;        //used by Delay
-    PINB_R |= BIT3;     //toggle PB3
     TCNT0_R = 0x00;     //reset the counter
 }
 
@@ -118,9 +121,14 @@ int main()
 
     while(1)
     {       
-        //Set Pins 0 to 13
-        PORTB_DATA_R ^= BIT4;
+        PORTB_DATA_R ^= BIT3;
+
+        if (!(gCycleCounter % 2))        
+            PORTB_DATA_R ^= BIT4;
+
         Delay(100);
+        gCycleCounter++;
+
     }
 
 	return 0;
@@ -142,16 +150,10 @@ void Delay(volatile unsigned int val)
 //////////////////////////////////////
 void GPIO_init(void)
 {
-    PORTB_DIR_R |= BIT0;
-    PORTB_DIR_R |= BIT1;
-    PORTB_DIR_R |= BIT2;
     PORTB_DIR_R |= BIT3;
     PORTB_DIR_R |= BIT4;
 
     //set initial value - low
-    PORTB_DATA_R &=~ BIT0;
-    PORTB_DATA_R &=~ BIT1;
-    PORTB_DATA_R &=~ BIT2;
     PORTB_DATA_R &=~ BIT3;
     PORTB_DATA_R &=~ BIT4;
 }
