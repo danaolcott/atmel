@@ -25,16 +25,16 @@
 								<option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.option.optimization.level.1442108411" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" useByScannerDiscovery="false" value="gnu.c.optimization.level.size" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.debugging.level.206869940" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" useByScannerDiscovery="false" value="gnu.c.debugging.level.default" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.include.paths.1824382429" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
-									<listOptionValue builtIn="false" value="../../"/>
 									<listOptionValue builtIn="false" value="/usr/lib/avr/include"/>
-									<listOptionValue builtIn="false" value="../../spi_driver"/>
+									<listOptionValue builtIn="false" value="/home/riley/Github/atmel/source/arduino/spi"/>
+									<listOptionValue builtIn="false" value="/home/riley/Github/atmel/source/arduino/spi/spi"/>
 								</option>
 								<option id="gnu.c.compiler.option.preprocessor.def.symbols.1170603967" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="__AVR_ATmega328P__"/>
 									<listOptionValue builtIn="false" value="F_CPU=16000000UL"/>
 								</option>
 								<option id="gnu.c.compiler.option.dialect.std.1406622711" name="Language standard" superClass="gnu.c.compiler.option.dialect.std" useByScannerDiscovery="true" value="gnu.c.compiler.dialect.c99" valueType="enumerated"/>
-								<option id="gnu.c.compiler.option.misc.other.667552425" name="Other flags" superClass="gnu.c.compiler.option.misc.other" useByScannerDiscovery="false" value="" valueType="string"/>
+								<option id="gnu.c.compiler.option.misc.other.667552425" name="Other flags" superClass="gnu.c.compiler.option.misc.other" useByScannerDiscovery="false" value="-c -fmessage-length=0" valueType="string"/>
 								<option id="gnu.c.compiler.option.misc.verbose.335558278" name="Verbose (-v)" superClass="gnu.c.compiler.option.misc.verbose" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.109284593" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
@@ -87,6 +87,13 @@
 									<listOptionValue builtIn="false" value="../../../spi"/>
 									<listOptionValue builtIn="false" value="../../"/>
 									<listOptionValue builtIn="false" value="../../spi_driver"/>
+									<listOptionValue builtIn="false" value="../../../"/>
+									<listOptionValue builtIn="false" value="../../../spi_driver"/>
+									<listOptionValue builtIn="false" value="../../spi_dev"/>
+									<listOptionValue builtIn="false" value=".././spi_dev"/>
+									<listOptionValue builtIn="false" value="../../eclipse_linux/spi_dev"/>
+									<listOptionValue builtIn="false" value="/home/riley/Github/atmel/source/arduino/spi"/>
+									<listOptionValue builtIn="false" value="/home/riley/Github/atmel/source/arduino/spi/spi"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1012130215" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>

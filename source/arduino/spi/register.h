@@ -2,6 +2,15 @@
 #ifndef __REGISTER_H
 #define __REGISTER_H
 
+/////////////////////////////////////////
+#define BIT0			(1u << 0)
+#define BIT1			(1u << 1)
+#define BIT2			(1u << 2)
+#define BIT3			(1u << 3)
+#define BIT4			(1u << 4)
+#define BIT5			(1u << 5)
+#define BIT6			(1u << 6)
+#define BIT7			(1u << 7)
 
 
 //////////////////////////////////////////
@@ -41,6 +50,16 @@
 #define TXC0_FLAG        (UCSR0A_R & (1u << 6))       //tx complete flag - poll !TXC0
 
 #define TXB8                0
+
+
+/////////////////////////////////////////
+//SPI
+#define SPI_CONTROL_R	(*((volatile unsigned char*)0x4C))	//control
+#define SPI_STATUS_R    (*((volatile unsigned char*)0x4D))	//status
+#define SPI_DATA_R      (*((volatile unsigned char*)0x4E))	//data
+#define SPI_IF_BIT		(1u << 7)
+
+
 
 #define __SEI        (SREG_R |= (1u << 7))
 

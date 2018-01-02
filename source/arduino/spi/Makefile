@@ -31,7 +31,7 @@ IDIR=/usr/lib/avr/include
 
 CFLAGS=-std=c99 -Wall -v -g -Os -mmcu=${MCU} -DF_CPU=${F_CPU} -D${STDLIB} -I. -I${IDIR}
 
-CFLAGS+=-I./spi_driver/
+CFLAGS+=-I./spi/
 
 #CFLAGS=-std=c99 -Wall -c -fmessage-length=0 -g -Os -mmcu=${MCU} -DF_CPU=${F_CPU} -D${STDLIB} -I. -I${IDIR}
 #CFLAGS+=-I./usart/
@@ -41,7 +41,7 @@ CFLAGS+=-I./spi_driver/
 
 TARGET=main
 #SRCS=main.c ./usart/usart.c ./command/command.c
-SRCS=main.c ./spi_driver/spi.c
+SRCS=main.c ./spi/spi.c
 
 
 TARGET_EXT=./eclipse_linux/Debug/avr_spi

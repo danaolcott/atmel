@@ -4,14 +4,12 @@ Baremetal Programming on the Atmel
 ATMega328P (Arduino) processor.
 Dana Olcott
 12/15/17
+A simple program that initializes spi on
+pins 10-13 (PB2 - PB5) and pin 8 (PB0).
 
-Ex: A simple program that uses PB5 (Pin13 - led)
-and PD2 (Pin2 - interrupt INT0), and a timer.
+uses timer0 to interrupt at 1khz for use
+with delay.
 
-This builds on interrupt1 with adding a timer into
-the routine.  The purpose is to add a systick counter
-with a 1ms timebase.  This will be used for the delay
-function so we can get rid of the libs.
 
 Defines (see makefile)  __AVR_ATmega328P__
 Inludes:  /usr/lib/avr/include
@@ -31,9 +29,7 @@ system("stty -F /dev/ttyUSB0 115200");
 #include <string.h>
 
 #include "register.h"
-
 #include "spi.h"
-
 
 //////////////////////////////////////
 //prototypes
@@ -43,8 +39,8 @@ void Timer0_init(void);
 
 /////////////////////////////
 //Delay items
-void Delay(volatile unsigned int val);
-static volatile unsigned long gTimeTick = 0x00;
+void Delay(unsigned long val);
+volatile unsigned long gTimeTick = 0x00;
 
 
 
@@ -70,14 +66,16 @@ int main()
 {
     GPIO_init();        //configure led and button
     Timer0_init();      //Timer0 Counter Overflow
-    SPI_init();
-
-
+    spi_init();
 
     while(1)
     {
-        PORTB_DATA_R ^= 1u << 5;
-        Delay(500);
+
+        PORTB_DATA_R ^= BIT0;
+
+        spi_write(0xAA);
+
+        Delay(50);
     }
 
 	return 0;
@@ -87,17 +85,14 @@ int main()
 
 ///////////////////////////////////////////
 //GPIO_init
-//Configure led and button.  Note, according
-//to datasheet, pullup can source current,
-//so might be a good idea to add series 
-//resistor.  either way works and not blew
-//up anything yet.
+//Configure pin 8, PB0 as output
 //
 void GPIO_init(void)
 {    
-   //Pin 13 - PB5
-   PORTB_DIR_R |= 1u << 5; //pin 5 as output
-   PORTB_DATA_R &=~ 1u << 5;   //clear
+   //Pin 8 - PB0
+   PORTB_DIR_R |= BIT0; 	//pin 8 as output
+   PORTB_DATA_R &=~ BIT0;	//clear pin 8
+
 }
 
 
@@ -142,12 +137,12 @@ void Timer0_init(void)
 
 ////////////////////////////////////
 //timeTick is increased in timer isr
-void Delay(volatile unsigned int val)
+void Delay(unsigned long val)
 {
+	volatile unsigned long t = val;
     gTimeTick = 0x00;           //upcounter
-    while (val > gTimeTick){};
+    while (t > gTimeTick){};
 }
-
 
 
 

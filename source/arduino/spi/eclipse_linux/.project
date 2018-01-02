@@ -35,9 +35,9 @@
 			<locationURI>PARENT-1-PROJECT_LOC/register.h</locationURI>
 		</link>
 		<link>
-			<name>spi_driver</name>
+			<name>spi</name>
 			<type>2</type>
-			<locationURI>PARENT-1-PROJECT_LOC/spi_driver</locationURI>
+			<locationURI>PARENT-1-PROJECT_LOC/spi</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
