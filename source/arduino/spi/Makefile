@@ -29,9 +29,11 @@ IDIR=/usr/lib/avr/include
 #excluding -c -fmessage-length=0 results in output that
 #makes sense.  incuding it matches output from eclipse build.
 
-CFLAGS=-std=c99 -Wall -v -g -Os -mmcu=${MCU} -DF_CPU=${F_CPU} -D${STDLIB} -I. -I${IDIR}
+#CFLAGS=-std=c99 -Wall -v -g -Os -mmcu=${MCU} -DF_CPU=${F_CPU} -D${STDLIB} -I. -I${IDIR}
+CFLAGS=-std=c99 -Wall -v -g -O0 -mmcu=${MCU} -DF_CPU=${F_CPU} -D${STDLIB} -I. -I${IDIR}
 
 CFLAGS+=-I./spi/
+CFLAGS+=-I./memory/
 
 #CFLAGS=-std=c99 -Wall -c -fmessage-length=0 -g -Os -mmcu=${MCU} -DF_CPU=${F_CPU} -D${STDLIB} -I. -I${IDIR}
 #CFLAGS+=-I./usart/
@@ -41,7 +43,7 @@ CFLAGS+=-I./spi/
 
 TARGET=main
 #SRCS=main.c ./usart/usart.c ./command/command.c
-SRCS=main.c ./spi/spi.c
+SRCS=main.c ./spi/spi.c ./memory/eeprom.c
 
 
 TARGET_EXT=./eclipse_linux/Debug/avr_spi

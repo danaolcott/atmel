@@ -7,17 +7,23 @@ Dana Olcott
 A simple program that initializes spi on
 pins 10-13 (PB2 - PB5) and pin 8 (PB0).
 
+Uses the Microchip 25AA640A EEPROM memory IC
+for testing the SPI interface.
+
 uses timer0 to interrupt at 1khz for use
 with delay.
+
+Process:
+Write 0xFF values to address 0x00 to 0xFF
+Read values in addresses 0x00 to 0xFF
+If values match address, set the led on pin 8 (PB0),
+else, clear the led.
 
 
 Defines (see makefile)  __AVR_ATmega328P__
 Inludes:  /usr/lib/avr/include
 
-
 system("stty -F /dev/ttyUSB0 115200");
-
-
 
 
 */
@@ -30,6 +36,7 @@ system("stty -F /dev/ttyUSB0 115200");
 
 #include "register.h"
 #include "spi.h"
+#include "eeprom.h"
 
 //////////////////////////////////////
 //prototypes
@@ -41,9 +48,6 @@ void Timer0_init(void);
 //Delay items
 void Delay(unsigned long val);
 volatile unsigned long gTimeTick = 0x00;
-
-
-
 
 
 ///////////////////////////////
@@ -66,16 +70,35 @@ int main()
 {
     GPIO_init();        //configure led and button
     Timer0_init();      //Timer0 Counter Overflow
-    spi_init();
+    spi_init();			//init spi
+    spi_setSpeed(SPI_SPEED_1_MHZ);
+    eeprom_init();		//init eeprom, set write enable.
+
+    //Fill eeprom address 0x00 to 0xFF with
+    //values = adress.
+    uint8_t i = 0;
+    for (i = 0 ; i < 0xFF ; i++)
+    	eeprom_writeData(i, i);
+
 
     while(1)
     {
 
-        PORTB_DATA_R ^= BIT0;
 
-        spi_write(0xAA);
+    	//read the values back, set the led if
+    	//a match, clear if not
+        for (i = 0x00 ; i < 0xFF ; i++)
+        {
+            uint8_t data = eeprom_readData(i);
+            if (data == i)
+            {
+                PORTB_DATA_R |= BIT0;
+            }
+            else
+                PORTB_DATA_R &=~ BIT0;
+        }
 
-        Delay(50);
+        Delay(10);
     }
 
 	return 0;
@@ -92,7 +115,6 @@ void GPIO_init(void)
    //Pin 8 - PB0
    PORTB_DIR_R |= BIT0; 	//pin 8 as output
    PORTB_DATA_R &=~ BIT0;	//clear pin 8
-
 }
 
 
@@ -143,14 +165,6 @@ void Delay(unsigned long val)
     gTimeTick = 0x00;           //upcounter
     while (t > gTimeTick){};
 }
-
-
-
-
-
-
-
-
 
 
 

@@ -22,12 +22,13 @@
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.targetPlatform.gnu.cross.1610016357" isAbstract="false" osList="all" superClass="cdt.managedbuild.targetPlatform.gnu.cross"/>
 							<builder buildPath="${workspace_loc:/avr_spi}/Debug" id="cdt.managedbuild.builder.gnu.cross.857063928" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="cdt.managedbuild.builder.gnu.cross"/>
 							<tool id="cdt.managedbuild.tool.gnu.cross.c.compiler.383845699" name="Cross GCC Compiler" superClass="cdt.managedbuild.tool.gnu.cross.c.compiler">
-								<option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.option.optimization.level.1442108411" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" useByScannerDiscovery="false" value="gnu.c.optimization.level.size" valueType="enumerated"/>
+								<option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.option.optimization.level.1442108411" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" useByScannerDiscovery="false" value="gnu.c.optimization.level.none" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.debugging.level.206869940" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" useByScannerDiscovery="false" value="gnu.c.debugging.level.default" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.include.paths.1824382429" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="/usr/lib/avr/include"/>
 									<listOptionValue builtIn="false" value="/home/riley/Github/atmel/source/arduino/spi"/>
 									<listOptionValue builtIn="false" value="/home/riley/Github/atmel/source/arduino/spi/spi"/>
+									<listOptionValue builtIn="false" value="/home/riley/Github/atmel/source/arduino/spi/memory"/>
 								</option>
 								<option id="gnu.c.compiler.option.preprocessor.def.symbols.1170603967" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="__AVR_ATmega328P__"/>
@@ -94,6 +95,7 @@
 									<listOptionValue builtIn="false" value="../../eclipse_linux/spi_dev"/>
 									<listOptionValue builtIn="false" value="/home/riley/Github/atmel/source/arduino/spi"/>
 									<listOptionValue builtIn="false" value="/home/riley/Github/atmel/source/arduino/spi/spi"/>
+									<listOptionValue builtIn="false" value="/home/riley/Github/atmel/source/arduino/spi/memory"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1012130215" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>

@@ -30,6 +30,11 @@
 			<locationURI>PARENT-1-PROJECT_LOC/main.c</locationURI>
 		</link>
 		<link>
+			<name>memory</name>
+			<type>2</type>
+			<locationURI>PARENT-1-PROJECT_LOC/memory</locationURI>
+		</link>
+		<link>
 			<name>register.h</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/register.h</locationURI>
