@@ -16,14 +16,13 @@ ATTiny85
 ATMega328p
 ----------
 
-- blink: Toggles led
-- interrupt - configures an interrupt
-- timer - configures a timer and a counter
-- usart - configures usart with simple command handler functionality
-- spi - configures spi peripheral on pins 10-13.  uses EEPROM IC to test read/write functions
-- lcd - configures spi peripheral on pins 10-13.  uses 128x64 display to test the spi interface.
-- tasker - configures a simple tasker to run two tasks.  the controller uses a timer on an interrupt.
-
+- blink: Flashes Pin 13 (PB5) on a delay using /util/delay.h.
+- interrupt: Program that uses PB5 (Pin13 - led) and PD2 (Pin2 - interrupt INT0).  Press the user button to change the flash state.  There are 4 flash states.  The button is configured as input, pullup enabled, falling edge trigger.  Switch debounce is incorported using a simple dummy delay function.
+- timer: Configures Timer0 to interrupt at about 1khz to serve as a timebase for the project.  The timer is used to create delays.  This is an extension on interrupt project, which uses a button, an led, and 4 flash states.
+- usart: Configures USART on Pins PD0 and PD1 and a simple command handler.  Interrupts on rx line are enabled.  End of command message is signaled with a \n.  Incoming data uses two buffers, flip-flop with each command.
+- spi: Configures spi peripheral on pins 10 to 13 (PB2-PB5).  Functions for read, write, write array.. etc are provided.  The example uses an EEPROM IC for testing the peripheral.
+- lcd: Configures spi peripheral on pins 10 to 13 (PB2-PB5).  Functions for read, write, write array.. etc are provided.  The example uses an spi-enabled lcd from Electronic Assembly (PN# EA WDOG128x64) for testing the interface.  Simple graphics functions are included in the lcd driver files for put pixel, clear, draw characters.
+- tasker: Tasker project that builds two tasks, sender and receiver.  The sender sends a message to the reciever to toggle an led.  The project initializes an interrupt for a user button on PD2 (Pin2), Timer0 to create the timebase for the tasker, and an led on PB5 (Pin 13).
 
 Photo: Demo of Electronic Assembly LCD graphic display, 128x64 using the spi interface.
 ![alt text](https://raw.githubusercontent.com/danaolcott/atmel/master/pictures/arduino_lcd.jpg)
