@@ -9,9 +9,9 @@ The following is a list of peripheral projects:
 ATTiny85
 --------
 
-- blink: Example that toggles a pin
-- interrupt: Configures an interrupt
-- moore: Configures a Moore state machine with 4 states
+- blink: Flashes PB3 and PB4.  Uses timer to create the timebase for delay function.
+- interrupt: A simple program that toggles PB3 and PB4 and captures interrupts on PB1 and PB2 (PCINT1, PCINT2).
+- moore: A simple Moore FSM with several states that flash leds on PB3 and PB4.  User buttons on PB1 and PB2 control the state.  Button presses are captured on interrupts.  A time base for the delay function.
 
 ATMega328p
 ----------
