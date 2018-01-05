@@ -5,7 +5,7 @@ ATMega328P (Arduino) processor.
 Dana Olcott
 12/15/17
 
-Ex: A simple program that flashes Pins 0 to 13.
+Ex: A simple program that flashes Pin 13.
 
 Pin Descriptions:
 Pins 0 to 13 reside on two ports: PORTD and PORTB
@@ -31,11 +31,9 @@ Inludes:  /usr/lib/avr/include
 
 int main()
 {
-	//register init - DDRB - PortB, DDB5 - Pin5
-    //Pins 13 to 8
+	//register init - DDRB - PortB, DDB5 - Pin13
 	DDRB |= _BV(DDB5);      //PB5 - pin 13 output
 	
-
 
     while(1)
     {
