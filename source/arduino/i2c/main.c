@@ -58,7 +58,14 @@ int main()
 
     while(1)
     {
+    	//scope output:
+    	// 0101 0010 1
+    	uint8_t temp[1] = {0x00};
+
+    	i2c_writeArray(LIGHT_SENSOR_I2C_ADDRESS, temp, 1);
+
 		PORTB_DATA_R ^= BIT5;
+		PORTB_DATA_R ^= BIT0;
         Delay(200);
     }
 
@@ -76,6 +83,9 @@ void GPIO_init(void)
    //Pin 13 - PB5
    PORTB_DIR_R |= BIT5; 	//pin 13 as output
    PORTB_DATA_R &=~ BIT5;	//clear pin 13
+
+   PORTB_DIR_R |= BIT0; 	//pin 8 as output
+   PORTB_DATA_R &=~ BIT0;	//clear pin 8
 }
 
 
