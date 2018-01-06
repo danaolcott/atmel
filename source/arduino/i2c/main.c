@@ -34,6 +34,11 @@ void Timer0_init(void);
 void Delay(unsigned long val);
 volatile unsigned long gTimeTick = 0x00;
 
+
+//////////////////////////////
+//i2c buffers
+static uint8_t dataBuffer[16] = {0x00};
+
 ///////////////////////////////
 //Timer0 Overflow Interrupt ISR
 //Configured to run at 1khz, it's
@@ -58,11 +63,17 @@ int main()
 
     while(1)
     {
-    	//scope output:
-    	// 0101 0010 1
-    	uint8_t temp[1] = {0x00};
+    	//power up device
+    	uint8_t t = 0x03;
+    	i2c_lightSensorWrite(0x00, &t, 1);
 
-    	i2c_writeArray(LIGHT_SENSOR_I2C_ADDRESS, temp, 1);
+    	Delay(1);
+
+    	//this function works
+    	i2c_lightSensorRead(0x00, dataBuffer, 16);
+
+		//this works
+    	//uint8_t t = i2c_lightSensorCode();
 
 		PORTB_DATA_R ^= BIT5;
 		PORTB_DATA_R ^= BIT0;

@@ -2,8 +2,8 @@
 #define __I2C__H_
 
 
-//#define LIGHT_SENSOR_I2C_ADDRESS	(((uint8_t)0x39) << 1)
-#define LIGHT_SENSOR_I2C_ADDRESS	(((uint8_t)0x29) << 1)
+//TSL2561 with grounded address pin
+#define I2C_ADDRESS	(((uint8_t)0x29) << 1)
 
 
 ////////////////////////////////////////////////
@@ -26,13 +26,38 @@
 #define MR_DATA_NACK                (0x58)
 
 
+typedef enum
+{
+	I2C_STATUS_START,
+	I2C_STATUS_RESTART,
+
+	I2C_STATUS_MT_SLA_ACK,
+	I2C_STATUS_MT_SLA_NACK,
+	I2C_STATUS_MT_DATA_ACK,
+	I2C_STATUS_MT_DATA_NACK,
+
+	I2C_STATUS_MR_SLA_ACK,
+	I2C_STATUS_MR_SLA_NACK,
+	I2C_STATUS_MR_DATA_ACK,
+	I2C_STATUS_MR_DATA_NACK,
+}I2C_StatusCode_t;
+
+
 void i2c_delay(unsigned long t);
 
 
 void i2c_init(void);
-void i2c_errorHandler(void);
+void i2c_errorHandler(I2C_StatusCode_t code, uint8_t value);
 
-void i2c_writeArray(uint8_t add, uint8_t* data, uint16_t length);
+void i2c_errorFlash(uint8_t numFlashes, uint16_t delay);
+
+
+uint8_t i2c_lightSensorCode(void);
+
+void i2c_lightSensorRead(uint8_t add, uint8_t* data, uint8_t size);
+void i2c_lightSensorWrite(uint8_t add, uint8_t* data, uint8_t size);
+
+
 
 void i2c_MemoryWrite(uint8_t add, uint8_t* memAdd, uint8_t numAddBytes,
 		uint8_t* memData, uint16_t memDataBytes);
