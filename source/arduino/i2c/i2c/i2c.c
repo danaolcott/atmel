@@ -52,6 +52,19 @@ void i2c_init(void)
 	//on the TWSR register, remaining bits
 	//are read only
 
+	//the following clock settings work well for the
+	//tsl2561 light sensor, clock speed just under 400khz.
+	//
+
+	//TWSR |= 0x01;	//prescale 4
+	//TWBR = 0x4;		//0x03 works
+
+
+	//clock looks really jittery when using
+	//a different i2c, so try changing this...
+
+	//  0101 0010 101
+
 	TWSR |= 0x01;	//prescale 4
 
 	//configure the .... TWBR - TW bit rate generator
@@ -62,7 +75,7 @@ void i2c_init(void)
 	//scl ~ 100kbits/sec for TWBR = 4
 //	TWBR = 0x10;
 
-	TWBR = 0x4;		//0x03 works
+	TWBR = 0x2;		//0x03 works
 
 //	TWBR = 0x0A;
 
@@ -81,6 +94,7 @@ void i2c_init(void)
 //
 void i2c_errorHandler(I2C_StatusCode_t code, uint8_t value)
 {
+	/*
 	switch(code)
 	{
 		case I2C_STATUS_START: 			i2c_errorFlash((uint8_t)code, 1000);	break;
@@ -95,6 +109,8 @@ void i2c_errorHandler(I2C_StatusCode_t code, uint8_t value)
 		case I2C_STATUS_MR_DATA_NACK: 	i2c_errorFlash((uint8_t)code, 1000);	break;
 		default:						i2c_errorFlash(1, 10000);				break;
 	}
+	*/
+
 }
 
 
@@ -270,7 +286,7 @@ void i2c_MemoryWrite(uint8_t add, uint8_t* memAdd, uint8_t numAddBytes,
 
 	//setup for a write to slave address memAdd
 	i2c_startCondition();			//start condition
-	i2c_addressWrite(I2C_ADDRESS);	//setup master write
+	i2c_addressWrite(add);	//setup master write
 
 	//send the memory address
 	for (i = 0 ; i < numAddBytes ; i++)
@@ -302,7 +318,7 @@ void i2c_MemoryRead(uint8_t add, uint8_t* memAdd, uint8_t numAddBytes,
 
 	//set up for a write to slave at starting address
 	i2c_startCondition();			//start condition
-	i2c_addressWrite(I2C_ADDRESS);	//setup master write
+	i2c_addressWrite(add);	//setup master write
 
 	//send the memory address bytes with ack
 	for (i = 0 ; i < numAddBytes ; i++)
@@ -310,7 +326,7 @@ void i2c_MemoryRead(uint8_t add, uint8_t* memAdd, uint8_t numAddBytes,
 
 	//send the start to change directions
 	i2c_startRepeatCondition();
-	i2c_addressRead(I2C_ADDRESS);
+	i2c_addressRead(add);
 
 	//read #memBytes into memData
 	//1 byte - read with a nack

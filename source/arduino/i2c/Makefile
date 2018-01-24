@@ -33,6 +33,7 @@ IDIR=/usr/lib/avr/include
 CFLAGS=-std=c99 -Wall -v -g -O0 -mmcu=${MCU} -DF_CPU=${F_CPU} -D${STDLIB} -I. -I${IDIR}
 
 CFLAGS+=-I./i2c/
+CFLAGS+=-I./si5351/
 
 #CFLAGS=-std=c99 -Wall -c -fmessage-length=0 -g -Os -mmcu=${MCU} -DF_CPU=${F_CPU} -D${STDLIB} -I. -I${IDIR}
 #CFLAGS+=-I./usart/
@@ -42,7 +43,7 @@ CFLAGS+=-I./i2c/
 
 TARGET=main
 #SRCS=main.c ./usart/usart.c ./command/command.c
-SRCS=main.c ./i2c/i2c.c
+SRCS=main.c ./i2c/i2c.c ./si5351/si5351.c
 
 
 TARGET_EXT=./eclipse_linux/Debug/avr_i2c

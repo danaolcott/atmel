@@ -11,17 +11,12 @@
 //
 #define START_CONDITION             (0x08)
 #define START_REPEAT_CONDITION      (0x10)
-
 #define MT_SLA_ACK                  (0x18)
 #define MT_SLA_NACK                 (0x20)
-
 #define MT_DATA_ACK                 (0x28)
 #define MT_DATA_NACK                (0x30)
-
-
 #define MR_SLA_ACK                  (0x40)
 #define MR_SLA_NACK                 (0x48)
-
 #define MR_DATA_ACK                 (0x50)
 #define MR_DATA_NACK                (0x58)
 

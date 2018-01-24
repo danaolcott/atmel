@@ -39,5 +39,10 @@
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/register.h</locationURI>
 		</link>
+		<link>
+			<name>si5351</name>
+			<type>2</type>
+			<locationURI>PARENT-1-PROJECT_LOC/si5351</locationURI>
+		</link>
 	</linkedResources>
 </projectDescription>
