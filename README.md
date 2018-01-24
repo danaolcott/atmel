@@ -11,7 +11,7 @@ ATTiny85
 
 - blink: Flashes PB3 and PB4.  Uses timer to create the timebase for delay function.
 - interrupt: A simple program that toggles PB3 and PB4 and captures interrupts on PB1 and PB2 (PCINT1, PCINT2).
-- moore: A simple Moore FSM with several states that flash leds on PB3 and PB4.  User buttons on PB1 and PB2 control the state.  Button presses are captured on interrupts.  A time base for the delay function.
+- moore: A simple Moore FSM with several states that flash leds on PB3 and PB4.  User buttons on PB1 and PB2 control the state.  Button presses are captured on interrupts.  Uses a timer to create the timebase for the delay function.  See photo below for prototype (blue led is a bit obnoxious and makes one a bit quezzy to look at it).
 
 ATMega328p
 ----------
