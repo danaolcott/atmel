@@ -13,6 +13,26 @@ ATTiny85
 - interrupt: A simple program that toggles PB3 and PB4 and captures interrupts on PB1 and PB2 (PCINT1, PCINT2).
 - moore: A simple Moore FSM with several states that flash leds on PB3 and PB4.  User buttons on PB1 and PB2 control the state.  Button presses are captured on interrupts.  Uses a timer to create the timebase for the delay function.  See photo below for prototype (blue led is a bit obnoxious and makes one a bit quezzy to look at it).
 
+Programming the ATTiny85
+------------------------
+The ATTiny85 can be programmed using an Arduino as the ISP.  There's a handful of writups how to do it, but here's the gist:
+- Program the Arduino with the ISP sketch located in Examples -> ArduinoISP.  A few notes on the settings, I used the default ones but the baudrate is specific to the processor.  Use 19200 for the ATTiny85.
+  - Baudrate 19200 (ATTiny85 does not use the same baud rate as the ATMega328p)
+  - #define SPI_CLOCK 		(1000000/6)
+
+- Connect the ATTiny85 to the Arduino using the following pinout:
+  - Arduino           ATTiny85
+    10                1 (Reset - No CS Pin Needed)
+    11                5 (MOSI)
+    12                6 (MISO)
+    13                7 (SCK)
+    5v                8 (VCC)
+    Gnd               4 (GND)
+
+- Program the Attiny85 using either the Arduino IDE or commandline using AVRDude.  See Example projects for Makefile for how to do this.
+
+    
+
 ATMega328p
 ----------
 
