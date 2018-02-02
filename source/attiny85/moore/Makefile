@@ -28,7 +28,7 @@ IDIR=/usr/lib/avr/include
 CFLAGS=-std=c99 -Wall -g -Os -mmcu=${MCU} -DF_CPU=${F_CPU} -D${STDLIB} -I. -I${IDIR}
 TARGET=main
 SRCS=main.c
-LINUX_PORT=/dev/ttyACM2
+LINUX_PORT=/dev/ttyACM0
 
 all:
 	${CC} ${CFLAGS} -o ${TARGET}.bin ${SRCS}

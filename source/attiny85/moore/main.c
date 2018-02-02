@@ -7,13 +7,13 @@ Dana Olcott
 Ex:  Moore State Machine Example Proram.
 
 A simple Moore FSM with several states that flash
-leds on pb3 and pb4.  user buttons on pb1 and pb2
-are used to control the flashState variable. pb1
-resets the flash state to 0, pb2 increases it.
+leds on pb3 and pb4.  user buttons on pb0 and pb1
+are used to control the flashState variable. pb0
+resets the flash state to 0, pb1 increases it.
 
 Hardware config:
 LEDs on PB3 and PB4 as output
-Buttons on PB1 and PB2 as input with interrupts.
+Buttons on PB0 and PB1 as input with interrupts.
 Timer0 as OCC with interrupt trigger at 1khz.
 
 General FSM Definition:
@@ -166,21 +166,21 @@ ISR(TIMER0_COMPA_vect)
 
 
 ///////////////////////////////////////////
-//ISR - Buttons on PCINT1 and PCINT2
+//ISR - Buttons on PCINT0 and PCINT1
 //shared interrupt??
 //
 //
 ISR(PCINT0_vect)
 {
-    unsigned char val1, val2 = 0x00;
+    unsigned char val0, val1 = 0x00;
     Waste_CPU(1000);
 
     //check button press after killing cpu time
-    val1 = PINB_R & BIT1;
-    val2 = PINB_R & BIT2;   //left
+    val0 = PINB_R & BIT0;
+    val1 = PINB_R & BIT1;   //left
 
-    //PB1 - down
-    if (!val1)
+    //PB0 - down
+    if (!val0)
     {
         PORTB_DATA_R ^= BIT3;
         flashState = 0;
@@ -188,7 +188,7 @@ ISR(PCINT0_vect)
 
     //input value for flash state
     //0 to num states - 1
-    if (!val2)
+    if (!val1)
     {
         if (flashState < FSM_NUM_STATES -1)
             flashState++;
@@ -263,10 +263,10 @@ void GPIO_init(void)
 
 
 ///////////////////////////////////////////
-//Configure PB1 ans PB2 on user buttons
+//Configure PB0 ans PB1 on user buttons
 //as interrupts, no pull.  Buttons have 10k
 //pullup added.
-//Configure to run on PCINT1 and PCINT2
+//Configure to run on PCINT0 and PCINT1
 //
 void Button_init(void)
 {
@@ -274,9 +274,9 @@ void Button_init(void)
     GIMSK_R |= BIT5;
 
     //PCMSK - enable line specific interrupt
-    //PCINT1 and PCINT2
+    //PCINT0 and PCINT1
+    PCMSK_R |= BIT0;
     PCMSK_R |= BIT1;
-    PCMSK_R |= BIT2;
 
     GIFR_R |= BIT5;     //clear pending interrupt flag
 
