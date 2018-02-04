@@ -84,12 +84,10 @@ State_t fsm[num states]
 #define PCMSK_R         (*((volatile unsigned char*)(0x15 + IO_OFFSET)))
 #define GIFR_R          (*((volatile unsigned char*)(0x3A + IO_OFFSET)))
 
-
 //IO
 #define PORTB_DATA_R    (*((volatile unsigned char*)(0x18 + IO_OFFSET)))
 #define PORTB_DIR_R     (*((volatile unsigned char*)(0x17 + IO_OFFSET)))
 #define PINB_R          (*((volatile unsigned char*)(0x16 + IO_OFFSET)))
-
 
 //timer 0
 #define OCCR0A_R         (*((volatile unsigned char*)(0x29 + IO_OFFSET)))
@@ -99,20 +97,22 @@ State_t fsm[num states]
 #define TCNT0_R          (*((volatile unsigned char*)(0x32 + IO_OFFSET)))
 #define TIFR_R           (*((volatile unsigned char*)(0x38 + IO_OFFSET)))
 
-
 //ADC
 #define ADCMUX_R         (*((volatile unsigned char*)(0x07 + IO_OFFSET)))
 #define ADCSRA_R         (*((volatile unsigned char*)(0x06 + IO_OFFSET)))
 #define ADCH_R           (*((volatile unsigned char*)(0x05 + IO_OFFSET)))       //bits 01 - top 2 in 10bit
 #define ADCL_R           (*((volatile unsigned char*)(0x04 + IO_OFFSET)))       //bits 0-7
 
+//temp defines
+#define DEFAULT_REF_TEMP        ((unsigned int)80)
 
 //////////////////////////////////////////
 //FSM items
 //
 #define FSM_NUM_STATES      4
 
-unsigned char flashState = 0x00;
+//updated in the button isr
+volatile unsigned char flashState = 0x00;
 
 //state functions
 void function0(void);
@@ -162,8 +162,8 @@ State_t currentState;
 //gReferenceADC reading = base reading
 //for all comparisons
 static unsigned int gReferenceADC;
-static unsigned int gReferenceMV;
-static unsigned int gReferenceTEMP;
+static float gReferenceMV;
+static float gReferenceTEMP;
 
 
 
@@ -184,6 +184,10 @@ unsigned int ADC1_read(void);
 //button debounce
 void Waste_CPU(unsigned int temp);
 void Dummy_Function(void);
+
+
+//sorting
+void SortArray(unsigned int *data, unsigned int size);
 
 ///////////////////////////////
 //Timer0 Overflow Interrupt ISR
@@ -230,10 +234,9 @@ ISR(PCINT0_vect)
     val0 = PINB_R & BIT0;
     val1 = PINB_R & BIT1;   //left
 
-    //PB0 - down
+    //PB0 - down - do nothing
     if (!val0)
     {
-        flashState = 0;
     }
 
     //input value for flash state
@@ -262,10 +265,11 @@ int main()
     Button_init();
     ADC1_init(); 
 
-    //init adc variables
-    gReferenceADC = 0;
-    gReferenceMV = 0x00;
-    gReferenceTEMP = 0x00;
+    //take intitial reading from adc
+    gReferenceADC = (ADC1_read() & 0x3FF);
+    gReferenceMV = ((float)gReferenceADC / 1024.0) * 1100.0;
+    gReferenceTEMP = (gReferenceMV - 500.0) / 10.0;     //centigrade
+    gReferenceTEMP = ((gReferenceTEMP * 9.0 / 5.0) + 32.0);
 
     while(1)
     {
@@ -527,41 +531,45 @@ void ADC1_init(void)
 //to start the conversion,
 //poll the interrupt bit
 //read and return the result
+//read it 5 times, take out the high
+//and low and use the average of the middle 3
+//
 unsigned int ADC1_read(void)
 {
     unsigned int result = 0x00;
+    unsigned int adc[5] = {0x00};
+    unsigned char i = 0;
     unsigned int temp = 0x00;
 
-    //enable the adc
-//    ADCSRA |= BIT7;
 
-    //write bit 6 high to start the conversion
-    ADCSRA |= (1 << ADSC);
+    for (i = 0 ; i < 5 ; i++)
+    {
+        //write bit 6 high to start the conversion
+        ADCSRA |= (1 << ADSC);
 
-    //wait - poll BIT6 - clear when conversion is complete
-    while (ADCSRA & (1 << ADSC));
+        //wait - poll BIT6 - clear when conversion is complete
+        while (ADCSRA & (1 << ADSC));
 
-    //read the result in ADCH and ADCL
-//    result = ADCL & 0x03;
-//    result = result << 8;
+        //read the result in ADCL then ADCH
+        //it seems the order is important and
+        //depends on if the data is left or 
+        //right justified. This is for left justified
+        
+        result = (ADCL_R & 0x03);
+        temp = (ADCH_R & 0xFF) << 2;
+        result |= temp;
 
-//    result = (ADCH_R & 0xFF);
-//    result = result << 2;
+        adc[i] = result;
+    }
 
-    result = (ADCL_R & 0x03);
-    temp = (ADCH_R & 0xFF) << 2;
-    result |= temp;
+    //sort the results - bubble sort
+    SortArray(adc, 5);
 
-
-    
-    //this works with left justify
-//    result = ADCH & 0xFF;
-
-
-
+    //average of middle 3
+    result = adc[1] + adc[2] + adc[3];
+    result = result / 3;
 
     return result;
-
 }
 
 
@@ -594,20 +602,39 @@ void Dummy_Function(void)
 //base temp, flash two leds
 //alternating.  read the ADC
 //and set the base value
+//check the button on PB0 to see if
+//pressed,  if pressed, update the 
+//ref adc and temp.
 void function0(void)
 {
-    gReferenceADC = ADC1_read() & 0x3FF;
-    gReferenceMV = gReferenceADC * 1100 / 1024;
-    gReferenceTEMP = (gReferenceMV - 500) / 10;     //centigrade
-    gReferenceTEMP = ((gReferenceTEMP * 9 / 5) + 32) & 0x7F;
+    unsigned char i = 0;
+    
+    if (!(PINB_R & BIT0))
+    {
+        gReferenceADC = (ADC1_read() & 0x3FF);
+        gReferenceMV = ((float)gReferenceADC / 1024.0) * 1100.0;
+        gReferenceTEMP = (gReferenceMV - 500.0) / 10.0;     //centigrade
+        gReferenceTEMP = ((gReferenceTEMP * 9.0 / 5.0) + 32.0);
+
+        //flash something to indicate stored
+        for (i = 0 ; i < 10 ; i++)
+        {
+            PORTB_DATA_R |= BIT3;
+            PORTB_DATA_R &=~ BIT4;
+            Delay(100);
+            PORTB_DATA_R |= BIT4;
+            PORTB_DATA_R &=~ BIT3;
+            Delay(100);
+        }
+    }
+
 
     PORTB_DATA_R |= BIT3;
     PORTB_DATA_R &=~ BIT4;
-    Delay(200);
+    Delay(500);
     PORTB_DATA_R |= BIT4;
     PORTB_DATA_R &=~ BIT3;
-    Delay(200);
-
+    Delay(500);
 
 }
 
@@ -621,18 +648,17 @@ void function0(void)
 //if current is higher than base, flash red
 void function1(void)
 {
-    unsigned int diff = 0;
+    int diff = 0;
     unsigned char i = 0;
-    unsigned int currentADC = ADC1_read() & 0x3FF;
-    unsigned int currentMV = currentADC * 1100 / 1024;
-    unsigned int currentTEMP = (currentMV - 500) / 10;     //centigrade
-    currentTEMP = ((currentTEMP * 9 / 5) + 32) & 0x7F;
-
+    unsigned int currentADC = (ADC1_read() & 0x3FF);
+    float currentMV = ((float)currentADC / 1024.0) * 1100.0;
+    float currentTEMP = (currentMV - 500.0) / 10.0;     //centigrade
+    currentTEMP = ((currentTEMP * 9.0 / 5.0) + 32.0);
 
     if (currentTEMP < gReferenceTEMP)
     {
         //flash yellow based on diff
-        diff = gReferenceTEMP - currentTEMP;
+        diff = (int)gReferenceTEMP - (int)currentTEMP;
 
         for (i = 0 ; i < diff ; i++)
         {
@@ -647,23 +673,22 @@ void function1(void)
         Delay(600);
     }
 
-
     else
     {
         //flash red based on diff
-        diff = currentTEMP - gReferenceTEMP;
+        diff = (int)currentTEMP - (int)gReferenceTEMP;
 
         for (i = 0 ; i < diff ; i++)
         {
             PORTB_DATA_R &=~ BIT3;
             PORTB_DATA_R |= BIT4;
-            Delay(50);
+            Delay(40);
             PORTB_DATA_R &=~ BIT3;
             PORTB_DATA_R &=~ BIT4;
             Delay(400);
         }
 
-        Delay(600);
+        Delay(1000);
     }
 }
 
@@ -674,18 +699,17 @@ void function1(void)
 //
 void function2(void)
 {
-    unsigned int diff = 0;
+    int diff = 0;
     unsigned char i = 0;
-    unsigned int currentADC = ADC1_read() & 0x3FF;
-    unsigned int currentMV = currentADC * 1100 / 1024;
-    unsigned int currentTEMP = (currentMV - 500) / 10;     //centigrade
-    currentTEMP = ((currentTEMP * 9 / 5) + 32) & 0x7F;      //128 F max
+    unsigned int currentADC = (ADC1_read() & 0x3FF);
+    float currentMV = ((float)currentADC / 1024.0) * 1100.0;
+    float currentTEMP = (currentMV - 500.0) / 10.0;     //centigrade
+    currentTEMP = ((currentTEMP * 9.0 / 5.0) + 32.0);
 
-
-    if (currentTEMP < 80)
+    if (currentTEMP < DEFAULT_REF_TEMP)
     {
         //flash yellow based on diff
-        diff = 80 - currentTEMP;
+        diff = DEFAULT_REF_TEMP - (unsigned int)currentTEMP;
 
         for (i = 0 ; i < diff ; i++)
         {
@@ -704,19 +728,19 @@ void function2(void)
     else
     {
         //flash red based on diff
-        diff = currentTEMP - 80;
+        diff = (unsigned int)currentTEMP - DEFAULT_REF_TEMP;
 
         for (i = 0 ; i < diff ; i++)
         {
             PORTB_DATA_R &=~ BIT3;
             PORTB_DATA_R |= BIT4;
-            Delay(50);
+            Delay(40);
             PORTB_DATA_R &=~ BIT3;
             PORTB_DATA_R &=~ BIT4;
             Delay(400);
         }
 
-        Delay(600);
+        Delay(1000);
     }
 }
 
@@ -730,6 +754,8 @@ void function3(void)
     result = ADC1_read();
     result = result & 0x3FF;        //10bit only
     unsigned int i, val = 0;
+    float adc = 0.0;
+
 
     //yellow
     if (result < 512)
@@ -737,25 +763,48 @@ void function3(void)
     else
         PORTB_DATA_R |= BIT3;
 
-    //flash the red led based on 100x the 
-    //adc reading
-    val = result / 100;
+    //adc in 10th's of a volt
+    adc = (float)result / 1024.0;
+    adc = adc * 11;
+
+    val = (unsigned int)adc;
+
     for (i = 0 ; i < val ; i++)
     {
         PORTB_DATA_R |= BIT4;
         Delay(50);
         PORTB_DATA_R &=~ BIT4;
-        Delay(200);        
+        Delay(400);        
     }
         
-    //flash freq set by the ADC reading.
-    Delay(1000);
-
-
+    Delay(2000);
 }
 
 
 
+
+
+
+///////////////////////////////////////////
+//Sort array of unsigned ints from lowest
+//to highest using bubble sort
+void SortArray(unsigned int *data, unsigned int size)
+{
+    unsigned int i, j, val;
+
+    for (i = 0 ; i < size ; i++)
+    {
+        for (j = i+ 1; j < size ; j++)
+        {
+            if(data[i] > data[j])
+            {
+                val = data[i];
+                data[i] = data[j];
+                data[j] = val;
+            }
+        }
+    }
+}
 
 
 
