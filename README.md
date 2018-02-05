@@ -49,8 +49,8 @@ Photo: Demo of Electronic Assembly LCD graphic display, 128x64 using the spi int
 ![alt text](https://raw.githubusercontent.com/danaolcott/atmel/master/pictures/arduino_lcd.jpg)
 
 
-Photo: ATTiny85 Moore State Machine Project Prototype.  Runs on a 3v battery, two leds and two user buttons.
-![alt text](https://raw.githubusercontent.com/danaolcott/atmel/master/pictures/attiny85_moore.jpg)
+Photo: ATTiny85 TempSensor Project.  Uses the TMP36GZ temperature sensor.  Display relative and absolute temperature using LEDs flashes.
+![alt text](https://raw.githubusercontent.com/danaolcott/atmel/master/pictures/attiny85_tempsensor1.jpg)
 
 
 
