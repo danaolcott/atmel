@@ -1,6 +1,6 @@
 # Atmel
 
-This repository contains a series of programs that initialize and demo various peripherals on several Atmel processors, including the popular ATmega328p found on the Arduino board.  Programs are compiled using avr-gcc on linux and flashed using Avrdude.  I've found this approach results in code sizes much smaller than using the Arduino IDE (although not nearly as straightforward).  The hope is to create a library of files / functions to create similar, but lighter weight functionality.
+This repository contains a series of programs that initialize and demo various peripherals on several Atmel processors.  Programs are compiled using avr-gcc on linux and flashed using Avrdude.  The programmer used to flash the processor is an Arduino board configured as ISP (See Examples->ArduinoISP in IDE).  The hope is to create a collection of files / functions that create similar but lighter weight functionality to the Arduino IDE.
 
 Several of the projects have an eclipse_linux folder that contains the eclipse project.  I've had a difficult time generating a hex file in eclipse that matches that using the commandline build in the Makefile.  Therefore, I've been using the hex file generated in the commandline build, and eclipse as an assistent for formatting, auto-complete, etc. 
 
@@ -12,6 +12,7 @@ ATTiny85
 - blink: Flashes PB3 and PB4.  Uses timer to create the timebase for delay function.
 - interrupt: A simple program that toggles PB3 and PB4 and captures interrupts on PB1 and PB2 (PCINT1, PCINT2).
 - moore: A simple Moore FSM with several states that flash leds on PB3 and PB4.  User buttons on PB1 and PB2 control the state.  Button presses are captured on interrupts.  Uses a timer to create the timebase for the delay function.  See photo below for prototype (blue led is a bit obnoxious and makes one a bit quezzy to look at it).
+- tempSensor: A continuation of the moore state machine program that uses the TMP36GZ (or similar) temperature sensor.  The state machine contains 4 states: Calibration, flash red / blue to show relative temperature, absolute temperature (F), and ADC reading.  See main.c for more details.  No schematic is included, but there should be enough text to reproduce the board.  This makes a great center piece on any coffee table :).  
 
 Programming the ATTiny85
 ------------------------
