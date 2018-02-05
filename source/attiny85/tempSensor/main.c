@@ -4,21 +4,8 @@ Programming the Atmel ATtimy85 processor.
 Dana Olcott
 2/1/18
 
-Ex:  Temperature Sensor State Machine Program
-
-This project follows along with the Moore State 
-Machine project with modifications to use a
-temperature sensor.
-
-Use ADC1 on PB2 (Pin 7)
-
-Buttons: shift these to PB0 and PB1
-on pins 5 and 6.  
-
-Leave LEDs alone
-
-
-General Concept:
+Temperature Sensor State Machine Program
+using the TMP36GZ temp sensor.
 
 Press the user button to set a base temperature 
 reading.  While in a certain state, the red 
@@ -28,29 +15,47 @@ degrees cooler than the base temp.  ie, it's a
 relative temperature measurment device.
 
 Hardware config:
-LEDs on PB3 and PB4 as output
+LEDs on PB3 and PB4 as output - Red = PB3, Blue = PB4
 Buttons on PB0 and PB1 as input with interrupts.
 Timer0 as OCC with interrupt trigger at 1khz.
 ADC Channel ADC1 on PB2 (Pin 7)
 
+Some added notes / components:
+Add load resistor from analog out to ground - 22k
+Add cap from hot to ground
+
 General FSM Definition:
 
 State_t struct:
-
 stateID                -index in the state table, 0,1, ...
 frequency              -delay routine for state evaluation
 *fptr                  -run to completion function
 nextState[]            -array of next states
 
-For every input value there is a cooresponding state
-listed in nextState
+State0: Calibration state - press and hold user
+        button to set the reference temp.  Stores
+        reference temp in EEPROM
 
-State_t fsm[num states]
+State1: Relative meaurement from referene temp.
+        Flashes red if current measurement is higher
+        than ref by number of deg F.  Flashes blue if
+        current measurement is lower than ref by number 
+        of deg F.
 
-150 = 73deg
-155 = 78deg
+State2: Abs temp measured from 70 deg.  Flashes red
+        number of deg. offset from 70.  Flashes blue
+        number of deb. cooler than offsets from 70.
 
+State3: Flashes red led indicating the ADC reading
+        at the analog out pin on the temp sensor.  ie,
+        if analog out is 0.5 volts, it flashes red 5 times.
+        Blue led is low if ADC reading less than mid-scale 
+        (ie, < 512) and high if above.
 
+User Buttons:
+        User button 1 changes state
+        User button 2 valid in State 0, used to 
+        set the reference temp.
 
 
 */
@@ -79,6 +84,7 @@ State_t fsm[num states]
 //EXT interrupts
 #define SREG_R          (*((volatile unsigned char*)(0x3F + IO_OFFSET)))
 #define _SEI            (SREG_R |= BIT7)
+#define _CEI            (SREG_R &=~ BIT7)
 
 #define GIMSK_R         (*((volatile unsigned char*)(0x3B + IO_OFFSET)))
 #define PCMSK_R         (*((volatile unsigned char*)(0x15 + IO_OFFSET)))
@@ -103,8 +109,19 @@ State_t fsm[num states]
 #define ADCH_R           (*((volatile unsigned char*)(0x05 + IO_OFFSET)))       //bits 01 - top 2 in 10bit
 #define ADCL_R           (*((volatile unsigned char*)(0x04 + IO_OFFSET)))       //bits 0-7
 
+
+//EEPROM
+#define EEARH_R           (*((volatile unsigned char*)(0x1F + IO_OFFSET)))       //MSB, bit 0
+#define EEARL_R           (*((volatile unsigned char*)(0x1E + IO_OFFSET)))       //EE addr low
+#define EEDR_R           (*((volatile unsigned char*)(0x1D + IO_OFFSET)))       //data register
+#define EECR_R           (*((volatile unsigned char*)(0x1C + IO_OFFSET)))       //EE addr low
+
+//EEPROM address definitions
+#define EEPROM_REF_ADC_LOW     ((uint8_t)0x10)
+#define EEPROM_REF_ADC_HIGH     ((uint8_t)0x11)
+
 //temp defines
-#define DEFAULT_REF_TEMP        ((unsigned int)80)
+#define DEFAULT_REF_TEMP        ((unsigned int)70)
 
 //////////////////////////////////////////
 //FSM items
@@ -140,11 +157,10 @@ typedef struct
     StateName_t nextState[FSM_NUM_STATES];   
 }State_t;
 
-
-//0123 - transitions to the cooresponding state
-//ie, if flashState == 1, run function 1, if 2, then
-//run 2, etc.  Runs the statemachine every 10ms
-//for all states.
+//////////////////////////////////////////////////
+//State Machine Definition
+//Simple state pattern - all states have next
+//state in sequence. ie, 0 to 1, 1 to 2.. etc.
 //
 State_t fsm[FSM_NUM_STATES] = 
 {
@@ -157,7 +173,7 @@ State_t fsm[FSM_NUM_STATES] =
 State_t currentState;
 
 
-///////////////////////////////
+////////////////////////////////////////////////
 //ADC Variables, flags... etc
 //gReferenceADC reading = base reading
 //for all comparisons
@@ -167,26 +183,27 @@ static float gReferenceTEMP;
 
 
 
-/////////////////////////////
+///////////////////////////////////////////////////
 //Delay items
 void Delay(volatile unsigned int val);
 static volatile unsigned long gTimeTick = 0x00;
 
-void GPIO_init(void);
-void Button_init(void);
-void Timer0_init(void);
-void Timer0_OCCA_init(void);
 
-void ADC1_init(void);       //ADC1 on PB2 - Pin 7
+void GPIO_init(void);               //GPIO - leds
+void Button_init(void);             //Buttons PB0 and PB1
+void Timer0_init(void);             //Time tick
+void Timer0_OCCA_init(void);        //Time tick
+void ADC1_init(void);               //ADC1 on PB2 - Pin 7
 unsigned int ADC1_read(void);
+void EEPROM_init(void);             //EEPROM
+void EEPROM_write(uint8_t address, uint8_t data);
+uint8_t EEPROM_read(uint8_t address);
 
-
-//button debounce
+//Button debounce
 void Waste_CPU(unsigned int temp);
 void Dummy_Function(void);
 
-
-//sorting
+//Sorting
 void SortArray(unsigned int *data, unsigned int size);
 
 ///////////////////////////////
@@ -208,22 +225,8 @@ ISR(TIMER0_COMPA_vect)
 }
 
 
-/////////////////////////////////////////
-//ADC Interrupt
-//see the following .h file
-//for isr definitions:
-//  /usr/lib/avr/include/avr/iotnx4.h
-// 
-//ISR(ADC_vect)
-//{
-//    ADCSRA_R |= BIT4;       //clear interrupt
-//}
-
-
 ///////////////////////////////////////////
 //ISR - Buttons on PCINT0 and PCINT1
-//shared interrupt??
-//
 //
 ISR(PCINT0_vect)
 {
@@ -252,25 +255,35 @@ ISR(PCINT0_vect)
 
 
 
-//////////////////////////////////////////
-//Main loop - calls flash routine o or 1
-//base on flashroutine variable set in 
-//button interrupt.
+////////////////////////////////////////////////
+//Main loop
 //
 int main()
 {
-    //init pins as output
+    uint16_t low, high;
+    
+    ///////////////////////////////////////////
+    //initialize peripherals
     GPIO_init();
     Timer0_OCCA_init();
     Button_init();
     ADC1_init(); 
+    EEPROM_init();
 
-    //take intitial reading from adc
-    gReferenceADC = (ADC1_read() & 0x3FF);
+    ////////////////////////////////////////////
+    //Get base readings from EEPROM
+    low = (EEPROM_read(EEPROM_REF_ADC_LOW)) & 0xFF;
+    high = (EEPROM_read(EEPROM_REF_ADC_HIGH)) & 0xFF;
+    high = high << 8;
+
+    gReferenceADC = high | low;
     gReferenceMV = ((float)gReferenceADC / 1024.0) * 1100.0;
     gReferenceTEMP = (gReferenceMV - 500.0) / 10.0;     //centigrade
     gReferenceTEMP = ((gReferenceTEMP * 9.0 / 5.0) + 32.0);
 
+
+    ///////////////////////////////////////////////////
+    //Run the state machine
     while(1)
     {
         //get next state from current and flashState input
@@ -292,20 +305,21 @@ int main()
 
 
 
-
-
-////////////////////////////////////
-//timeTick is increased in timer isr
+/////////////////////////////////////////////
+//Delay - gTimeTick incremented in timer isr
 void Delay(volatile unsigned int val)
 {
-    gTimeTick = 0x00;           //upcounter
+    gTimeTick = 0x00;
     while (val > gTimeTick){};
 }
 
 
 
 
-//////////////////////////////////////
+////////////////////////////////////////////
+//GPIO_init
+//Configure LEDs as output
+//RED = BIT3, Blue = BIT4
 void GPIO_init(void)
 {
     PORTB_DIR_R |= BIT3;
@@ -318,10 +332,10 @@ void GPIO_init(void)
 
 
 
-///////////////////////////////////////////
-//Configure PB0 and PB1 on user buttons
-//as interrupts, no pull.  Buttons have 10k
-//pullup added.
+/////////////////////////////////////////////////
+//Configure User Buttons.  
+//PB0 and PB1 on interrupts, no pull.
+//Buttons have 10k pullup added.
 //Configure to run on PCINT0 and PCINT1
 //
 void Button_init(void)
@@ -342,16 +356,11 @@ void Button_init(void)
 
 
 
-//////////////////////////////////////////
+//////////////////////////////////////////////////
 //Configure Timer0 with Overflow Interrupt
-//configure timer to run at prescale = 8,
-//overflow interrupt enable.
 //
-//no presceale = 4khz
-//prescale = 8, 500hz
 void Timer0_init(void)
-{
-  
+{  
     //Timer Control - 2 registers:
     //TCCR0A - output compare modes
     //Section 11.9.2
@@ -359,15 +368,15 @@ void Timer0_init(void)
     //no waveform gen - 00
     TCCR0A_R = 0x00;
 
-    //TCCR0B - prescale - 
-    TCCR0B_R |= BIT0;
-
+    //TCCR0B - prescale
     //    000 - no clock - timer disabled
     //    001 - no prescale
     //    010 - clk/8
     //    011 - clk/64
     //    100 - clk/256
     //    101 - clk/1024
+
+    TCCR0B_R |= BIT0;
 
     //TIMSK - int mask reg - bit 1 overflow interrupt en.
     TIMSK_R |= BIT1;
@@ -385,13 +394,14 @@ void Timer0_init(void)
 
 
 
-//////////////////////////////////
-//Compare Capture
+//////////////////////////////////////////////
+//Timer0 - Compare Capture
 //Generates an interrupt at 1khz
+//Run Timer0 as Compare Capture
+//Alternative to previous configuration.
 //
 void Timer0_OCCA_init(void)
 {
-  
     //Timer Control - 2 registers:
     //TCCR0A - output compare modes
     //Section 11.9.2
@@ -399,15 +409,14 @@ void Timer0_OCCA_init(void)
     //no waveform gen - 00
     TCCR0A_R = 0x00;
 
-    //TCCR0B - prescale - 
-    TCCR0B_R |= BIT1;
-
+    //TCCR0B - prescale - no prescale
     //    000 - no clock - timer disabled
     //    001 - no prescale
     //    010 - clk/8
     //    011 - clk/64
     //    100 - clk/256
     //    101 - clk/1024
+    TCCR0B_R |= BIT1;
 
     //trigger ~2x and adjust as needed
     OCCR0A_R = 120;
@@ -428,111 +437,56 @@ void Timer0_OCCA_init(void)
 
 
 
-///////////////////////////////////////////////
-//ADC1 on PB2 on Pin7
-//From what I can tell, the main registers 
-//of interest are:
-//PORTB reg - Bit 2 - config as input
-
-//starting page 122 of the datasheet
-//registers defined on page 134, Section 17.13
+////////////////////////////////////////////////////////
+//ADC1 Configuration
+//Configure ADC1 to run on PB2 (Pin 7)
 //
+//References: Page 122 - 134 of the datasheet
 //
-//general process:
-//set the ref voltage in ADCMUX - REFS 2:0
-//enable the ADC by setting the ADC enable bit in ADCSRA (ADEN)
-//data is available in registers ADCH and ADCL
-//data is right justified
-//can left justify using the ADLAR bit in ADMUX
+//General Process:
+//Set up the reference voltage (use 1.1v) using
+//the ADCMUX register, Bits 2-0
+//Enable the ADC by setting the ADC enable bit
+//in ADCSRA (ADEN).
+//Data is available in registers ADCH and ADCL
+//Left justify by using the ADLAR bit in ADMUX
 //
-//ADCSRA
-//ADCSRB - not sure we need this one.
-//DIDR0 - digital input disable register
-
-//ADMUX
-//ADCH and ADCL - resultss go here
-//
-//1 - ADMUX - 0x07 - write 0000 0001 = 0x01
-//bit 7-6 - REFS - set to 000 - use Vcc as ref
-//bit 5 - ADLAR - justify - set as 0 - rt justify
-//bits 0 - 3 - MUX - ADC1 - single ended input - write 0001
-//
-//2 - ADCSRA - Control and status register A - 0x06
+//ADCSRA - Control and status register A
 //bit 7 - ADEN - enable adc, write to 1 to enable adc
-//bit 6 - ADSC - start the conversion - write 1 to start conversion. 
-//              poll it till it goes low.  when low, the conversion is done
-//
-//bit 5 - ADATE - ADC auto trigger enable.  write this bit one to auto trigger (not sure...)
+//bit 6 - ADSC - start the conversion - write 1 to start. 
+//               poll it till it goes low indicating complete.
+//bit 5 - ADATE - ADC auto trigger enable.  leave this 0
 //bit 4 - ADIF - interrupt flag, set when conversion is complete.  
 //bit 3 - ADIE - interrupt enable - set to 0
-//bits 0-2 - prescaler - set to 111, prescale = 128.  
+//bits 0-2 - prescaler - set based on the CPU speed, for 1mhz, use prescale 8
 //
-// result = 1010 0111       initial value = 0xA7
-//start the conversion -  1 << 6
-//poll bit 6 until it goes low.
-//
-
-
-//#define ADCMUX_R         (*((volatile unsigned char*)(0x07 + IO_OFFSET)))
-//#define ADCSRA_R         (*((volatile unsigned char*)(0x06 + IO_OFFSET)))
-//#define ADCH_R           (*((volatile unsigned char*)(0x05 + IO_OFFSET)))       //bits 01 - top 2 in 10bit
-//#define ADCL_R           (*((volatile unsigned char*)(0x04 + IO_OFFSET)))       //bits 0-7
-
-//if using auto trigger, the source is selected
-//by setting the trigger bits in ADCSRB
-
-
 void ADC1_init(void)
 {
-   
-    //configure PB2 as input 
-    //PORTB_DIR_R &=~ BIT2;
-
-    //set up the MUX register,        
-    //1 - ADCMUX - 0x07 - write 0000 0001 = 0x01
-    //bit 7-6 - REFS - set to 000 - use Vcc as ref
-    //bit 5 - ADLAR - justify - set as  0 - rt justify
-    //bits 0 - 3 - MUX - ADC1 - single ended input - write 0001
-    //
-
-//    ADMUX = 0x01;      //Vcc as ref, rt justify, ADC1 as single ended input
-
-    //left justify, vcc as ref
-  //  ADMUX = 0x21;      //Vcc as ref, rt justify, ADC1 as single ended input
-
-
+    //ADCMUX_R register - Configure as 1.1v reference
+    //left justify, ADC1 single ended input
     //left justify, 1.1v ref (bit 7 high, bit 6 low)
     //1010 0001
-    ADMUX = 0xA1;      //Vcc as ref, rt justify, ADC1 as single ended input
+    ADMUX = 0xA1;
 
-
-//    ADCMUX_R = 0x01;      //Vcc as ref, rt justify, ADC1 as single ended input
-
-//    ADCSRA = ((1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0));  //prescale 128
-//    ADCSRA = ((1 << ADPS2) | (1 << ADPS1) | (0 << ADPS0));  //prescale 64
-
-//prescale 8 works with left justify and using the adc h reg
-
+    //prescale bits - use prescale = 8
     ADCSRA = ((0 << ADPS2) | (1 << ADPS1) | (1 << ADPS0));  //prescale 8
 
-//    ADCSRA = ((1 << ADPS2) | (0 << ADPS1) | (0 << ADPS0));  //prescale 16
-
-
+    //enable the ADC
     ADCSRA |= (1 << ADEN);
-
-
 
 }
 
 
-/////////////////////////////////
-//ADC1 read
-//set bit 6 high in the ADCSRA_R
-//to start the conversion,
-//poll the interrupt bit
-//read and return the result
-//read it 5 times, take out the high
-//and low and use the average of the middle 3
+///////////////////////////////////////////////////////////
+//ADC1_read
+//Read data from ADC1.  Process consists of:
+//Set bit 6 high in ADCSRA_R to start conversion
+//Poll bit 6 till it goes low indicating complete.
+//Read the results. in data high and low registers.
+//Note:
+//Seems order these are read is important.  
+//For left justify, reading data low then data high.
+//Repeat this 5 times, sort, and take the average.
 //
 unsigned int ADC1_read(void)
 {
@@ -541,14 +495,13 @@ unsigned int ADC1_read(void)
     unsigned char i = 0;
     unsigned int temp = 0x00;
 
-
     for (i = 0 ; i < 5 ; i++)
     {
         //write bit 6 high to start the conversion
-        ADCSRA |= (1 << ADSC);
+        ADCSRA_R |= BIT6;
 
         //wait - poll BIT6 - clear when conversion is complete
-        while (ADCSRA & (1 << ADSC));
+        while (ADCSRA_R & BIT6);
 
         //read the result in ADCL then ADCH
         //it seems the order is important and
@@ -576,7 +529,8 @@ unsigned int ADC1_read(void)
 
 
 
-/////////////////////////////////////
+///////////////////////////////////////////
+//Dummy delay used for switch debounce
 void Waste_CPU(unsigned int temp)
 {
     volatile unsigned int val = temp;
@@ -588,7 +542,7 @@ void Waste_CPU(unsigned int temp)
 }
 
 
-/////////////////////////////////////
+//////////////////////////////////////////
 void Dummy_Function(void)
 {
 
@@ -597,17 +551,18 @@ void Dummy_Function(void)
 
 
 
-/////////////////////////////////////
-//use function 0 to set the 
-//base temp, flash two leds
-//alternating.  read the ADC
-//and set the base value
-//check the button on PB0 to see if
-//pressed,  if pressed, update the 
-//ref adc and temp.
+///////////////////////////////////////////
+//State0 - Function to Run
+//
+//Calibration State
+//Press and hold user button to store the 
+//current ADC1 reading as the reference.
+//If stored, the LEDs will alternate fast
+//for 10 times.
+//
 void function0(void)
 {
-    unsigned char i = 0;
+    unsigned char i, dataL, dataH;
     
     if (!(PINB_R & BIT0))
     {
@@ -616,6 +571,13 @@ void function0(void)
         gReferenceTEMP = (gReferenceMV - 500.0) / 10.0;     //centigrade
         gReferenceTEMP = ((gReferenceTEMP * 9.0 / 5.0) + 32.0);
 
+        //write the reference ADC to eeprom
+        dataH = (gReferenceADC >> 8) & 0xFF;
+        dataL = gReferenceADC & 0xFF;
+
+        EEPROM_write(EEPROM_REF_ADC_HIGH, dataH);
+        EEPROM_write(EEPROM_REF_ADC_LOW, dataL);
+              
         //flash something to indicate stored
         for (i = 0 ; i < 10 ; i++)
         {
@@ -640,12 +602,15 @@ void function0(void)
 
 
 
-///////////////////////////////////
-//function 1 - 
-//use this as a comparison with current
-//reading and base reading....
-//if current is less than base, flash yellow
-//if current is higher than base, flash red
+//////////////////////////////////////////////////
+//State1 - Function to Run
+//Relaive Temperature Display
+//
+//Flash the blue or red led based on whether
+//the current temp is colder or hotter than
+//the referene temp.  Flashes number of degrees
+//(F) colder or hotter than the reference.
+//
 void function1(void)
 {
     int diff = 0;
@@ -657,16 +622,16 @@ void function1(void)
 
     if (currentTEMP < gReferenceTEMP)
     {
-        //flash yellow based on diff
+        //flash blue based on diff
         diff = (int)gReferenceTEMP - (int)currentTEMP;
 
         for (i = 0 ; i < diff ; i++)
         {
-            PORTB_DATA_R &=~ BIT4;
-            PORTB_DATA_R |= BIT3;
-            Delay(50);
-            PORTB_DATA_R &=~ BIT4;
             PORTB_DATA_R &=~ BIT3;
+            PORTB_DATA_R |= BIT4;
+            Delay(50);
+            PORTB_DATA_R &=~ BIT3;
+            PORTB_DATA_R &=~ BIT4;
             Delay(400);
         }
 
@@ -680,11 +645,11 @@ void function1(void)
 
         for (i = 0 ; i < diff ; i++)
         {
-            PORTB_DATA_R &=~ BIT3;
-            PORTB_DATA_R |= BIT4;
-            Delay(40);
-            PORTB_DATA_R &=~ BIT3;
             PORTB_DATA_R &=~ BIT4;
+            PORTB_DATA_R |= BIT3;
+            Delay(40);
+            PORTB_DATA_R &=~ BIT4;
+            PORTB_DATA_R &=~ BIT3;
             Delay(400);
         }
 
@@ -693,9 +658,13 @@ void function1(void)
 }
 
 
-/////////////////////////////////////
-//flash yellow or red based on diff with
-//base temp 65 deg.
+////////////////////////////////////////////////
+//State2 - Function to Run
+//
+//Absolute Temperature Display
+//Flash blue or red led indicating the 
+//temperature difference from 70 deg. F.
+//For ex: 74, flash red led 4 times.
 //
 void function2(void)
 {
@@ -708,16 +677,16 @@ void function2(void)
 
     if (currentTEMP < DEFAULT_REF_TEMP)
     {
-        //flash yellow based on diff
+        //flash blue based on diff
         diff = DEFAULT_REF_TEMP - (unsigned int)currentTEMP;
 
         for (i = 0 ; i < diff ; i++)
         {
-            PORTB_DATA_R &=~ BIT4;
-            PORTB_DATA_R |= BIT3;
-            Delay(50);
-            PORTB_DATA_R &=~ BIT4;
             PORTB_DATA_R &=~ BIT3;
+            PORTB_DATA_R |= BIT4;
+            Delay(50);
+            PORTB_DATA_R &=~ BIT3;
+            PORTB_DATA_R &=~ BIT4;
             Delay(400);
         }
 
@@ -732,11 +701,11 @@ void function2(void)
 
         for (i = 0 ; i < diff ; i++)
         {
-            PORTB_DATA_R &=~ BIT3;
-            PORTB_DATA_R |= BIT4;
-            Delay(40);
-            PORTB_DATA_R &=~ BIT3;
             PORTB_DATA_R &=~ BIT4;
+            PORTB_DATA_R |= BIT3;
+            Delay(40);
+            PORTB_DATA_R &=~ BIT4;
+            PORTB_DATA_R &=~ BIT3;
             Delay(400);
         }
 
@@ -744,10 +713,20 @@ void function2(void)
     }
 }
 
-///////////////////////////////
-//read the value on the adc
-//turn led off if low, led on
-//if high
+
+
+///////////////////////////////////////////////////
+//State3 - Function to Run
+//
+//Measurement of ADC1 Voltage
+//Display the ADC1 reading in tenths of a volt.
+//The voltage is displayed by flashing the 
+//red led number of 1/10ths of a volt.  
+//Blue led indicates if it's exceeded 1/2
+//of full scale reference temp.  For example:
+//if the ADC reading was 0.3XX volts, the red
+//led flashes 3 times and the blue led is off
+//
 void function3(void)
 {
     unsigned int result = 0x00;
@@ -757,11 +736,11 @@ void function3(void)
     float adc = 0.0;
 
 
-    //yellow
+    //blue
     if (result < 512)
-        PORTB_DATA_R &=~ BIT3;
+        PORTB_DATA_R &=~ BIT4;
     else
-        PORTB_DATA_R |= BIT3;
+        PORTB_DATA_R |= BIT4;
 
     //adc in 10th's of a volt
     adc = (float)result / 1024.0;
@@ -771,9 +750,9 @@ void function3(void)
 
     for (i = 0 ; i < val ; i++)
     {
-        PORTB_DATA_R |= BIT4;
+        PORTB_DATA_R |= BIT3;
         Delay(50);
-        PORTB_DATA_R &=~ BIT4;
+        PORTB_DATA_R &=~ BIT3;
         Delay(400);        
     }
         
@@ -805,6 +784,119 @@ void SortArray(unsigned int *data, unsigned int size)
         }
     }
 }
+
+
+
+
+/////////////////////////////////////////////////////////////
+//EEPROM_init()
+//Configure EEPROM registers for storing data.
+//
+//General summary of how it works:
+//EEDR_R  - contains the data for read or write
+//EEARH_R - MSB bit of the address, set to 0
+//EEARL_R - lower 8 bits of address
+
+//EECR_R - EE control register
+//bits 7 - read - reserved
+//bits 6 - read - reserved
+//bits 5-4 - prog. mode - set 00 to do erase and write in 1 opp.
+//bits 3 - IE - interrupt enable - set to 0
+//bits 2 - EEMPE - master program enable - set to 1 then write
+//         EEPE to 1 within 4 clock cycles to program EEPROM
+//bits 1 - EEPE - write to 1 within 4 clock cycles to program
+//         EEPROM.  Data is written to the specified address
+//bits 0 - EERE - read enable bit.  Set to one to read the data at
+//         the specified address.  Poll the EEPE bit prior to
+//         reading to to make sure a write is not in progress.  
+//         Data is available at the specified address immediately
+//         after setting the read bit.
+//
+//General Notes / Obsevations:
+//
+//Disable all interrupts during any
+//read/write opperation using _SEI and _CEI opperations.
+//
+//Reflashing the Attiny85 using ISP over SPI erases the EEPROM.
+//
+//
+void EEPROM_init(void)
+{
+    _CEI;               //disable interrupts
+    EEARH_R &=~ BIT0;   //set address to 0x00
+    EEARL_R = 0x00;     //set address to 0x00
+ 
+   //programming mode - erase and write in 1 opperation
+    EECR_R &=~ BIT5;    //prog. mode
+    EECR_R &=~ BIT4;    //prog. mode
+    EECR_R &=~ BIT3;    //disable interrupts
+
+    //poll EEPE bit1 to make sure no write is taking place
+    while (EECR_R & BIT1){};
+
+    _SEI;               //enable interrupts
+}
+
+
+///////////////////////////////////////////////////
+//EEPROM write
+//Process:
+//disable interrupts
+//poll EEPE bit 1 in the control reg
+//write address to address low.
+//write data to EEDR_R
+//write 1 to EEMPE - bit 2
+//write 1 to EEPE - bit 1 within 4 clock cycles
+//poll the EEPE bit until write complete
+//enable interrupts
+void EEPROM_write(uint8_t address, uint8_t data)
+{
+    _CEI;
+
+    //poll EEPE bit1 to complete write opperation
+    while (EECR_R & BIT1){};
+
+    EECR_R &=~ BIT5;        //prog. mode - erase and write
+    EECR_R &=~ BIT4;        //prog. mode - erase and write
+
+    EEARH_R &=~ BIT0;       //address high - 0, max 0xFF
+    EEARL_R = address;      //address low - address
+
+    EEDR_R = data;          //write the data
+
+    EECR_R |= BIT2;         //set bit 2 - master prog. enable
+    EECR_R |= BIT1;         //set bit 1 - EEPE within 4 clock cycles.
+
+    while (EECR_R & BIT1){};    //poll EEPE bit to complete write
+
+    _SEI;                   //enable interrupts
+}
+
+////////////////////////////////////////////////////
+//EEPROM read
+//Process:
+//disable interrupts
+//poll EEPE bit 1 in EECR_R to confirm no write in progress
+//set the target address.
+//set the EERE bit 0 in EECR_R reg.
+//data is read in the EEDR_R
+//enable interrupts
+//
+uint8_t EEPROM_read(uint8_t address)
+{
+    _CEI;                       //disable interrupts
+
+    while (EECR_R & BIT1){};    //poll the EEPE bit
+
+    EEARH_R &=~ BIT0;           //set address high 0 (restrict 0xFF max)
+    EEARL_R = address;          //set address low - max 0xFF
+    EECR_R |= BIT0;             //read enable bit 0 high
+
+    _SEI;                       //enable interrupts
+
+    return EEDR_R;
+}
+
 
 
 
