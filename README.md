@@ -1,6 +1,6 @@
 # Atmel
 
-This repository contains a series of programs that initialize and demo various peripherals on several Atmel processors.  Programs are compiled using avr-gcc on linux and flashed using Avrdude.  The programmer used to flash the processor is an Arduino board configured as ISP (See Examples->ArduinoISP in IDE).  The hope is to create a collection of files / functions that create similar but lighter weight functionality to the Arduino IDE.
+This repository contains a series of programs that initialize and demo various peripherals on several Atmel processors.  Programs are compiled using avr-gcc and flashed using Avrdude.  The programmer used to flash the processor is an Arduino board configured as ISP (See Examples->ArduinoISP in IDE).
 
 Several of the projects have an eclipse_linux folder that contains the eclipse project.  I've had a difficult time generating a hex file in eclipse that matches that using the commandline build in the Makefile.  Therefore, I've been using the hex file generated in the commandline build, and eclipse as an assistent for formatting, auto-complete, etc. 
 
