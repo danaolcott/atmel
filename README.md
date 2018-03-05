@@ -18,17 +18,17 @@ Programming the ATTiny85
 ------------------------
 The ATTiny85 can be programmed using an Arduino as the ISP.  There's a handful of writups how to do it, but here's the gist:
 - Program the Arduino with the ISP sketch located in Examples -> ArduinoISP.  A few notes on the settings, I used the default ones but the baudrate is specific to the processor.  Use 19200 for the ATTiny85.
-  - Baudrate 19200 (ATTiny85 does not use the same baud rate as the ATMega328p)
-  - #define SPI_CLOCK 		(1000000/6)
+  - Baudrate 19200 (ATTiny85 does not use the same baud rate as the ATMega328p) - See Line 142 in the default sketch
+  - #define SPI_CLOCK 		(1000000/6) - See Line 53 in the default sketch
 
 - Connect the ATTiny85 to the Arduino using the following pinout:
   - Arduino           ATTiny85
-    10                1 (Reset - No CS Pin Needed)
-    11                5 (MOSI)
-    12                6 (MISO)
-    13                7 (SCK)
-    5v                8 (VCC)
-    Gnd               4 (GND)
+    10 - 1 (Reset - No CS Pin Needed)
+    11 - 5 (MOSI)
+    12 - 6 (MISO)
+    13 - 7 (SCK)
+    5v - 8 (VCC)
+    Gnd - 4 (GND)
 
 - Program the Attiny85 using either the Arduino IDE or commandline using AVRDude.  See Example projects for Makefile for how to do this.
 
