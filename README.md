@@ -22,13 +22,13 @@ The ATTiny85 can be programmed using an Arduino as the ISP.  There's a handful o
   - #define SPI_CLOCK 		(1000000/6) - See Line 53 in the default sketch
 
 - Connect the ATTiny85 to the Arduino using the following pinout:
-  - Arduino           ATTiny85
-    10 - 1 (Reset - No CS Pin Needed)
-    11 - 5 (MOSI)
-    12 - 6 (MISO)
-    13 - 7 (SCK)
-    5v - 8 (VCC)
-    Gnd - 4 (GND)
+  - Arduino Pin - ATTiny85 Pin
+    -- Pin 10 to Pin 1 (Reset - No CS Pin Needed)
+    -- Pin 11 to Pin 5 (MOSI)
+    -- Pin 12 to Pin 6 (MISO)
+    -- Pin 13 to Pin 7 (SCK)
+    -- Pin 5v to Pin 8 (VCC)
+    -- Pin Gnd to Pin 4 (GND)
 
 - Program the Attiny85 using either the Arduino IDE or commandline using AVRDude.  See Example projects for Makefile for how to do this.
 
