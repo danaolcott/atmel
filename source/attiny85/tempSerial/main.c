@@ -7,8 +7,26 @@ Dana Olcott
 Temperature Sensor State Machine Program
 with output over a serial port at 9600 baud.
 
+Temp Sensor - Microchip # MCP9700A-E/T0
+Pinout - looking at flat face - 1 2 3
+1 - Vdd
+2 - Vout
+3 - GND
 
-Temp Sensor - XXXXXXXXXXXX
+
+Sensor Transfer Function:
+Vout = Tc x Ta + V0c    where:
+    Vout    = output voltage on pin2
+    Tc      = Temp Coeff                    10mV / C
+    Ta      = Ambient Temp
+    V0c     = Output voltage at 0 deg C     500mv
+
+Ta = (Vout - V0c) / Tc
+
+NOTE: These temp characteristics are the same ones
+      for the other temp IC I was using. TGZ 3? something....
+
+
 User Button - PB0 - one button
 LEDs - PB3 and PB4
 Temp Sensor / ADC - PB2
