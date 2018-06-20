@@ -1,6 +1,6 @@
 # Atmel
 
-This repository contains a series of programs that initialize and demo various peripherals on several Atmel processors.  Programs are compiled using avr-gcc on linux and flashed using Avrdude.  The programmer used to flash the processor is an Arduino board configured as ISP (See Examples->ArduinoISP in IDE).  The hope is to create a collection of files / functions that create similar but lighter weight functionality to the Arduino IDE.
+This repository contains a series of programs that initialize and demo various peripherals on several Atmel processors.  Programs are compiled using avr-gcc and flashed using Avrdude.  The programmer used to flash the processor is an Arduino board configured as ISP (See Examples->ArduinoISP in IDE).
 
 Several of the projects have an eclipse_linux folder that contains the eclipse project.  I've had a difficult time generating a hex file in eclipse that matches that using the commandline build in the Makefile.  Therefore, I've been using the hex file generated in the commandline build, and eclipse as an assistent for formatting, auto-complete, etc. 
 
@@ -18,17 +18,17 @@ Programming the ATTiny85
 ------------------------
 The ATTiny85 can be programmed using an Arduino as the ISP.  There's a handful of writups how to do it, but here's the gist:
 - Program the Arduino with the ISP sketch located in Examples -> ArduinoISP.  A few notes on the settings, I used the default ones but the baudrate is specific to the processor.  Use 19200 for the ATTiny85.
-  - Baudrate 19200 (ATTiny85 does not use the same baud rate as the ATMega328p)
-  - #define SPI_CLOCK 		(1000000/6)
+  - Baudrate 19200 (ATTiny85 does not use the same baud rate as the ATMega328p) - See Line 142 in the default sketch
+  - #define SPI_CLOCK 		(1000000/6) - See Line 53 in the default sketch
 
 - Connect the ATTiny85 to the Arduino using the following pinout:
-  - Arduino           ATTiny85
-    10                1 (Reset - No CS Pin Needed)
-    11                5 (MOSI)
-    12                6 (MISO)
-    13                7 (SCK)
-    5v                8 (VCC)
-    Gnd               4 (GND)
+- Arduino Pin - ATTiny85 Pin
+    - Pin 10 to Pin 1 (Reset - No CS Pin Needed)
+    - Pin 11 to Pin 5 (MOSI)
+    - Pin 12 to Pin 6 (MISO)
+    - Pin 13 to Pin 7 (SCK)
+    - Pin 5v to Pin 8 (VCC)
+    - Pin Gnd to Pin 4 (GND)
 
 - Program the Attiny85 using either the Arduino IDE or commandline using AVRDude.  See Example projects for Makefile for how to do this.
 
@@ -49,8 +49,8 @@ Photo: Demo of Electronic Assembly LCD graphic display, 128x64 using the spi int
 ![alt text](https://raw.githubusercontent.com/danaolcott/atmel/master/pictures/arduino_lcd.jpg)
 
 
-Photo: ATTiny85 Moore State Machine Project Prototype.  Runs on a 3v battery, two leds and two user buttons.
-![alt text](https://raw.githubusercontent.com/danaolcott/atmel/master/pictures/attiny85_moore.jpg)
+Photo: ATTiny85 TempSensor Project.  Uses the TMP36GZ temperature sensor.  Display relative and absolute temperature using LEDs flashes.
+![alt text](https://raw.githubusercontent.com/danaolcott/atmel/master/pictures/attiny85_tempsensor1.jpg)
 
 
 
