@@ -426,6 +426,7 @@
       <Value>../src/Bitmap</Value>
       <Value>../src/Game</Value>
       <Value>../src/Sound</Value>
+      <Value>../src/ASF/sam/drivers/twihs</Value>
     </ListValues>
   </armgcc.compiler.directories.IncludePaths>
   <armgcc.compiler.optimization.level>Optimize (-O1)</armgcc.compiler.optimization.level>
@@ -541,6 +542,7 @@
     <Folder Include="src\ASF\sam\drivers\mpu\" />
     <Folder Include="src\ASF\sam\drivers\dacc" />
     <Folder Include="src\ASF\sam\drivers\afec" />
+    <Folder Include="src\ASF\sam\drivers\twihs" />
     <Folder Include="src\ASF\sam\drivers\tc" />
     <Folder Include="src\ASF\sam\drivers\spi" />
     <Folder Include="src\ASF\sam\drivers\pio\" />
@@ -581,6 +583,18 @@
     <Folder Include="src\Sound" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="src\ASF\sam\drivers\twihs\twihs.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\ASF\sam\drivers\twihs\twihs.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\Drivers\i2c_driver.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\Drivers\i2c_driver.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\Sound\Sound.c">
       <SubType>compile</SubType>
     </Compile>

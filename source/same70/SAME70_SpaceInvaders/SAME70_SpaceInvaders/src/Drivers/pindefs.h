@@ -30,6 +30,7 @@
 #define GPIO_D12			PIO_PD20_IDX
 #define GPIO_D13			PIO_PD22_IDX
 
+#define GPIO_LED			PIO_PC8_IDX
 
 
 

@@ -81,7 +81,7 @@
 #include "dac_driver.h"
 #include "adc_driver.h"
 #include "gpio_driver.h"			//gpio and buttons
-
+#include "i2c_driver.h"				//eeprom
 #include "lcd_12864_dfrobot.h"		//lcd driver
 #include "bitmap.h"					//images
 #include "joystick.h"				//joystick left/right
@@ -133,6 +133,7 @@ int main(void)
 	Timer3_Config();		//1000hz - required
 	DAC_Config();			//configure DAC output on DAC0, PB13
 	ADC_ConfigAD6();		//setup channel 6 - AD1 pin
+	I2C_Config();			//configure I2C for EEPROM - pins on Arduino headers
 	LCD_Config();			//setup lcd shield
 	Sprite_Init();			//initialize the game engine
 	Sound_Init();			//init the sound engine
@@ -140,8 +141,24 @@ int main(void)
 
 	Sprite_ClearGameOverFlag();
 
+	static uint8_t rx[4] = {0x00, 0x00, 0x00, 0x00};
+	static uint16_t mAddress = 0x00;
+
 	/////////////////////////////////////////
 	//Main loop
+
+
+	while (1)
+	{
+		I2C_EEPROM_Read(mAddress, 2, rx, 4);
+		mAddress = mAddress + 1;
+
+		ioport_toggle_pin_level(GPIO_LED);
+		Timer_Delay(500);
+	}
+	
+	/*
+
 	while (1) 
 	{
 		//Game Over??
@@ -187,6 +204,9 @@ int main(void)
 
         Timer_Delay(200);
 	}
+
+	*/
+
 }
 
 

@@ -21,31 +21,31 @@
 #include "lcd_12864_dfrobot.h"
 
 
- ////////////////////////////////////////////////////
- //GPIO_Config(void)
- //LED0 - PIO_PC8_IDX
- void GPIO_Config(void)
- {
-	 //enable the clocks
-	 pmc_enable_periph_clk(ID_PIOA);												//enable the clock
-	 pmc_enable_periph_clk(ID_PIOC);												//enable the clock
+////////////////////////////////////////////////////
+//GPIO_Config(void)
+//LED0 - PIO_PC8_IDX
+void GPIO_Config(void)
+{
+	//enable the clocks
+	pmc_enable_periph_clk(ID_PIOA);												//enable the clock
+	pmc_enable_periph_clk(ID_PIOC);												//enable the clock
 
-	 //Configure PC19 - D6
-	 //	ioport_set_pin_dir(PIO_PC19_IDX, IOPORT_DIR_OUTPUT);
-	 //	ioport_set_pin_level(PIO_PC19_IDX, false);
+	//Configure PC19 - D6
+	//	ioport_set_pin_dir(PIO_PC19_IDX, IOPORT_DIR_OUTPUT);
+	//	ioport_set_pin_level(PIO_PC19_IDX, false);
 
-	 //Configure PD11 - D5
-	 //	ioport_set_pin_dir(PIO_PD11_IDX, IOPORT_DIR_OUTPUT);
-	 //	ioport_set_pin_level(PIO_PD11_IDX, false);
+	//Configure PD11 - D5
+	//	ioport_set_pin_dir(PIO_PD11_IDX, IOPORT_DIR_OUTPUT);
+	//	ioport_set_pin_level(PIO_PD11_IDX, false);
 
-	 //Configure PD27 - D4
-	 //	ioport_set_pin_dir(PIO_PD27_IDX, IOPORT_DIR_OUTPUT);
-	 //	ioport_set_pin_level(PIO_PD27_IDX, false);
+	//Configure PD27 - D4
+	//	ioport_set_pin_dir(PIO_PD27_IDX, IOPORT_DIR_OUTPUT);
+	//	ioport_set_pin_level(PIO_PD27_IDX, false);
 
-	 //configure PC8 as output - LED0
-	 ioport_set_pin_dir(PIO_PC8_IDX, IOPORT_DIR_OUTPUT);
-	 ioport_set_pin_level(PIO_PC8_IDX, false);
- }
+	//configure PC8 as output - LED0
+	ioport_set_pin_dir(PIO_PC8_IDX, IOPORT_DIR_OUTPUT);
+	ioport_set_pin_level(PIO_PC8_IDX, false);
+}
 
 
 //////////////////////////////////////////////////

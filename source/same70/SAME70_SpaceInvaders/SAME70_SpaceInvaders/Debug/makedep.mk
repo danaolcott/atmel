@@ -2,6 +2,10 @@
 # Automatically-generated file. Do not edit or delete the file
 ################################################################################
 
+src\ASF\sam\drivers\twihs\twihs.c
+
+src\Drivers\i2c_driver.c
+
 src\Sound\Sound.c
 
 src\Sound\wavExplodePlayer.c
