@@ -51,7 +51,6 @@ typedef enum
 }SpriteVerticalDirection_t;
 
 
-
 //player
 typedef struct
 {
@@ -78,7 +77,6 @@ typedef struct
 	const ImageData* image;
 }EnemyStruct;
 
-
 //missile struct
 typedef struct
 {
@@ -90,6 +88,23 @@ typedef struct
 	const ImageData* image;
 }MissileStruct;
 
+//drone struct
+typedef struct
+{
+	uint8_t life;
+	uint8_t points;
+	uint32_t x;
+	uint32_t y;
+	uint32_t sizeX;
+	uint32_t sizeY;
+	const ImageData* image;
+	uint16_t timeout;
+	uint16_t timeTick;
+	SpriteDirection_t horizDirection;
+
+}DroneStruct;
+
+
 
 
 void Sprite_DummyDelay(uint32_t delay);
@@ -98,15 +113,22 @@ void Sprite_Init(void);
 void Sprite_Player_Init(void);
 void Sprite_Enemy_Init(void);
 void Sprite_Missile_Init(void);
+void Sprite_Drone_Init(void);
+
 
 void Sprite_Player_Move(void);
 void Sprite_Enemy_Move(void);
 void Sprite_Missle_Move(void);
+void Sprite_Drone_Move(void);
 
+void Sprite_Drone_Launch(void);
 void Sprite_Player_Missle_Launch(void);
 void Sprite_Enemy_Missle_Launch(void);
 
+void Sprite_Drone_Missle_Launch(void);
+
 int Sprite_Score_EnemyHit(uint8_t enemyIndex, uint8_t missileIndex);
+void Sprite_Score_DroneHit(uint8_t missileIndex);
 int Sprite_Score_PlayerHit(uint8_t missileIndex);
 
 uint16_t Sprite_GetGameScore(void);
@@ -115,10 +137,8 @@ uint16_t Sprite_GetGameLevel(void);
 void Sprite_ResetGameScore(void);
 uint8_t Sprite_GetNumPlayers(void);
 
-
 int Sprite_GetNumEnemy(void);
 int Sprite_GetRandomEnemy(void);
-
 
 int Sprite_Player_GetNextMissile(void);
 int Sprite_Enemy_GetNextMissile(void);
@@ -130,13 +150,13 @@ void Sprite_ClearPlayerMissileLaunchFlag(void);
 uint8_t Sprite_GetGameOverFlag(void);
 void Sprite_ClearGameOverFlag(void);
 
-
 void Sprite_UpdateDisplay(void);
 void Sprite_Player_Draw(void);
 void Sprite_Enemy_Draw(void);
 void Sprite_Missle_Draw(void);
-
+void Sprite_Drone_Draw(void);
 
 void Sprite_Player_Explode(uint16_t x, uint16_t y);
+void Sprite_Drone_Explode(uint16_t x, uint16_t y);
 
 #endif

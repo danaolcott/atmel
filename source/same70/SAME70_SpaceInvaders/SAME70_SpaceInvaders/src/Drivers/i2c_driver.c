@@ -182,6 +182,7 @@ void I2C_EEPROM_Read(uint16_t memaddress, uint8_t memaddlen, uint8_t* data, uint
 		while (1){}
 	}
 
+
 	I2C_DummyDelay(100000);
 }
 

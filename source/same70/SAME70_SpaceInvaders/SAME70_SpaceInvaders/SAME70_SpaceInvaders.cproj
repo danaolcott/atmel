@@ -589,6 +589,21 @@
     <Compile Include="src\ASF\sam\drivers\twihs\twihs.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\Bitmap\imgDrone1.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\Bitmap\imgDroneExp1.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\Bitmap\imgDroneExp2.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\Bitmap\imgDroneExp3.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\Bitmap\imgDroneExp4.c">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\Drivers\i2c_driver.c">
       <SubType>compile</SubType>
     </Compile>

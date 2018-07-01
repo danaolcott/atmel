@@ -463,11 +463,8 @@ void LCD_DrawStringKernLength(uint8_t row_initial, uint8_t kern, uint8_t* mystri
 
 		if ((position + temp) < 127)
 		{
-			//put the contents of the function here, we need
-			//to update the frame buffer
-			//LCD_DrawCharKern(kern, mystring[count]);
-
-			line = mystring[count] - 27;		//ie, for char 32 " ", it's on line 5
+			//get the value off the font table
+			line = mystring[count] - 27;
 			value0 = (line-1) << 3;
 
 			//char width from offset
@@ -489,9 +486,7 @@ void LCD_DrawStringKernLength(uint8_t row_initial, uint8_t kern, uint8_t* mystri
 				element++;
 			}
 		}
-
-		position += temp;
-		//count++;
+		position += temp;		//update the column lcd position
 	}
 }
 
@@ -532,9 +527,9 @@ void LCD_PutPixel(uint16_t x, uint16_t y, uint8_t color, uint8_t update)
 	
 	//modify
 	if (color == 1)
-	elementValue |= (1 << bitShift);        //add 1
+		elementValue |= (1 << bitShift);        //add 1
 	else
-	elementValue &=~ (1 << bitShift);       //clear 1
+		elementValue &=~ (1 << bitShift);       //clear 1
 	
 	//write
 	frameBuffer[element] = elementValue;
@@ -745,7 +740,6 @@ void LCD_DrawBitmap(const ImageData *image, uint8_t update)
 			data = in0 | in1 | in2 | in3 | in4 | in5 | in6 | in7;
 
 			//update framebuffer
-//			LCD_WriteData(data);
 			frameBuffer[element++] = data;
 		}
 	}
@@ -759,7 +753,9 @@ void LCD_DrawBitmap(const ImageData *image, uint8_t update)
 //Draw  icon into frameBuffer.
 //pass 1 for update to update the display
 //offsetX and offsetY are x and y offsets from origin
-//
+//NOTE: if update = 0, it is assumed the framebuffer
+//is cleared and we only need to draw the black (1)
+//pixels
 void LCD_DrawIcon(uint32_t offsetX, uint32_t offsetY, const ImageData *pImage, uint8_t update)
 {
 	uint32_t sizeX = pImage->xSize;
@@ -785,10 +781,15 @@ void LCD_DrawIcon(uint32_t offsetX, uint32_t offsetY, const ImageData *pImage, u
 			while (p > 0)
 			{
 				bitValue = (data >> (p-1)) & 0x01;
-				if (!bitValue)
-					LCD_PutPixel(x, y, 0, update);
-				else
+
+				if (bitValue == 1)
 					LCD_PutPixel(x, y, 1, update);
+				else
+				{
+					if (update == 1)
+						LCD_PutPixel(x, y, 0, update);
+				}
+
 
 				x++;            //increment the x
 				p--;

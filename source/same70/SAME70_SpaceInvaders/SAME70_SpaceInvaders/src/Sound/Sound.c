@@ -52,12 +52,17 @@ void Sound_Init(void)
 //Typically wave files are 44khz.  Therefore, 
 //play every 4th element with timer running
 //at 11khz.
+//NOTE:
+//wave data file is scaled by 8 to boost up the
+//dac output.  shifting up 4 makes it lower than
+//shifting up by 3 as shown on scope output.  
 //
 void Sound_InterruptHandler(void)
 {
 	if (waveCounter > 4)
 	{
-        DAC_write(DAC_Channel_0, *waveData);
+		uint16_t output = (uint16_t)(*waveData) & 0xFF;
+        DAC_write(DACC_CHANNEL_0, (output << 3));
 
 		waveData+=4;            //increment the pointer
 		waveCounter-=4;			//decrement the down counter
@@ -66,7 +71,7 @@ void Sound_InterruptHandler(void)
 	else
 	{
         Timer0_Stop();
-        DAC_write(DAC_Channel_0, 0x00);
+        DAC_write(DACC_CHANNEL_0, 0x00);
 	}
 }
 
@@ -75,9 +80,9 @@ void Sound_InterruptHandler(void)
 void Sound_PlaySound(const SoundData *sound)
 {
 	waveData = (uint8_t*)sound->pSoundData;		//set the pointer
-	waveCounter = sound->length;
+	waveCounter = sound->length;				//set the counter
 
-    //start the timer that calls the sound isr
+	//start 11khz timer to call the sound handler
     Timer0_Start();
 }
 
@@ -101,7 +106,6 @@ void Sound_Play_EnemyExplode(void)
 {
 	Sound_PlaySound(&sound_explodePlayer);
 }
-
 
 void Sound_Play_GameOver(void)
 {

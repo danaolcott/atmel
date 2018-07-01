@@ -74,7 +74,7 @@ void Button_Config()
 	pio_enable_interrupt(PIOA, PIO_PA11);										//enable the line interrupts
 
 	//PA5
-	pio_set_input(PIOA, PIO_PA5, PIO_PULLUP);									//PA11 as input with pullup enabled
+	pio_set_input(PIOA, PIO_PA5, PIO_PULLUP);									//PA5 as input with pullup enabled
 	pio_set_debounce_filter(PIOA, PIO_PA5, 1000000);							//debounce
 	pio_handler_set(PIOA, ID_PIOA, PIO_PA5, PIO_IT_FALL_EDGE, Button_Handler);	//configure interrupt event
 	pio_enable_interrupt(PIOA, PIO_PA5);										//enable the line interrupts
@@ -98,8 +98,7 @@ void Button_Handler(const uint32_t id, const uint32_t index)
 	//PA11 - button
 	if ((id == ID_PIOA) && (index == PIO_PA11))
 	{
-		//if game over flag is set, clear it
-		//and no missle launch
+		//game over flag or missle 
 		if (Sprite_GetGameOverFlag() == 1)
 			Sprite_ClearGameOverFlag();
 		else
@@ -111,6 +110,7 @@ void Button_Handler(const uint32_t id, const uint32_t index)
 	//PA5 - button
 	if ((id == ID_PIOA) && (index == PIO_PA5))
 	{
+		//game over flag or missle 
 		if (Sprite_GetGameOverFlag() == 1)
 			Sprite_ClearGameOverFlag();
 		else

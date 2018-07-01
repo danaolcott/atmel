@@ -141,23 +141,8 @@ int main(void)
 
 	Sprite_ClearGameOverFlag();
 
-	static uint8_t rx[4] = {0x00, 0x00, 0x00, 0x00};
-	static uint16_t mAddress = 0x00;
-
 	/////////////////////////////////////////
 	//Main loop
-
-
-	while (1)
-	{
-		I2C_EEPROM_Read(mAddress, 2, rx, 4);
-		mAddress = mAddress + 1;
-
-		ioport_toggle_pin_level(GPIO_LED);
-		Timer_Delay(500);
-	}
-	
-	/*
 
 	while (1) 
 	{
@@ -195,18 +180,23 @@ int main(void)
 	        Sprite_Enemy_Missle_Launch();
         }
 
-        Sprite_Player_Move();		//move player
-        Sprite_Enemy_Move();		//move enemy
-        Sprite_Missle_Move();		//move missle
-        Sprite_UpdateDisplay();		//update the display
+		////////////////////////////////////////////////
+		//launch drone - every 20 game cycles
+		if (!(gCounter % 20))
+		{
+			Sprite_Drone_Launch();
+		}
+
+		Sprite_Player_Move();		//move player
+		Sprite_Enemy_Move();		//move enemy
+		Sprite_Missle_Move();		//move missile
+		Sprite_Drone_Move();		//move the drone
+		Sprite_UpdateDisplay();		//update the display
         
         gCounter++;
 
         Timer_Delay(200);
 	}
-
-	*/
-
 }
 
 

@@ -22,16 +22,22 @@ struct ImageData{
 
 typedef struct ImageData ImageData;
 
-
 //bitmaps
 extern const ImageData imagePlayer1;
 extern const ImageData imageEnemy1;
 extern const ImageData imageMissile1;
+extern const ImageData bmimgDrone1Bmp;
 
+//explosions
 extern const ImageData bmimgPlayerExp1Bmp;
 extern const ImageData bmimgPlayerExp2Bmp;
 extern const ImageData bmimgPlayerExp3Bmp;
 extern const ImageData bmimgPlayerExp4Bmp;
 
+//explosions
+extern const ImageData bmimgDroneExp1Bmp;
+extern const ImageData bmimgDroneExp2Bmp;
+extern const ImageData bmimgDroneExp3Bmp;
+extern const ImageData bmimgDroneExp4Bmp;
 
 #endif

@@ -8,7 +8,7 @@ Sound converter from wav to c code:
 http://ccgi.cjseymour.plus.com/wavtocode/wavtocode.htm
 
 Sounds assumed to be sampled at 44khz.  To avoid jamming up the
-interrupts, run the output at 11khz, so read every 4th sample
+interrupts, run the output at 11khz, and read every 4th sample
 
 */
 //////////////////////////////////////////////////////////

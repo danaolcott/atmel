@@ -4,6 +4,16 @@
 
 src\ASF\sam\drivers\twihs\twihs.c
 
+src\Bitmap\imgDrone1.c
+
+src\Bitmap\imgDroneExp1.c
+
+src\Bitmap\imgDroneExp2.c
+
+src\Bitmap\imgDroneExp3.c
+
+src\Bitmap\imgDroneExp4.c
+
 src\Drivers\i2c_driver.c
 
 src\Sound\Sound.c
