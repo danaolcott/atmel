@@ -34,7 +34,7 @@
 #define AT24C_ADDRESS           (0x57)		//datasheet
 
 #define EEPROM_MEM_ADDR         0
-#define EEPROM_MEM_ADDR_LENGTH  2
+#define EEPROM_MEM_ADDR_LENGTH  1
 
 
 //////////////////////////////////////////////////
