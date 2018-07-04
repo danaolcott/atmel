@@ -16,6 +16,8 @@ src\Bitmap\imgDroneExp4.c
 
 src\Drivers\i2c_driver.c
 
+src\Game\score.c
+
 src\Sound\Sound.c
 
 src\Sound\wavExplodePlayer.c

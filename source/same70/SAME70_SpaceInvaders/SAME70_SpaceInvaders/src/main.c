@@ -87,6 +87,7 @@
 #include "joystick.h"				//joystick left/right
 #include "sprite.h"					//game engine
 #include "Sound.h"					//sound engine
+#include "score.h"					//high score, level, etc, EEPROM
 
 ////////////////////////////////////////////////////////
 //Thankyou so much Atmel for creating the test project
@@ -137,6 +138,10 @@ int main(void)
 	LCD_Config();			//setup lcd shield
 	Sprite_Init();			//initialize the game engine
 	Sound_Init();			//init the sound engine
+
+	//comment out this if the score and player
+	//are already set
+	//Score_Init();			//init high score, level, name
 	LCD_BacklightOn();		//turn on the backlight
 
 	Sprite_ClearGameOverFlag();
@@ -152,14 +157,52 @@ int main(void)
 	        Sound_Play_GameOver();
 	        Timer_Delay(2000);
         }
-		//button presses clear the flag if the 
-		//flag is set
+
+		//High Score Flag - Was a new high score achieved??
+		//if a new high score flag... signal the 
+		//state machine to enter into high score entry state
+		//the state will handle up, down, left right, etc
+		//signals.
+		//these get posted in any button or joystick polling
+		//as usual.
+		//ie, they are always posted.
+
+
+		//Add the following:
+		//flag for high score
+		//flag for state to enter the player name
+		//function for adding the new player name
+		//add simple HSM??
+		//two states - high score enter state
+		//and offstate
+
+
+		//display game over and high score.  flag is
+		//cleared from button press if the flag
+		//is set
         while (Sprite_GetGameOverFlag() == 1)
         {
-	        LCD_DrawStringKern(2, 3, " Press Button");
+			uint8_t buffer[SCORE_PLAYER_NAME_SIZE] = {0x00};
+			uint8_t buffer2[16] = {0x00};
+			uint16_t highScore = Score_GetHighScore();
+			uint8_t level = Score_GetMaxLevel();
+			uint8_t len = Score_GetPlayerName(buffer);
+
+			LCD_DrawStringKernLength(1, 3, buffer, len);
+
+			int n = sprintf((char*)buffer2, "Score:%d", highScore);
+			LCD_DrawStringKernLength(2, 3, buffer2, n);
+
+			n = sprintf((char*)buffer2, "Level:%d", level);
+			LCD_DrawStringKernLength(3, 3, buffer2, n);
+
+	        LCD_DrawStringKern(5, 3, " Press Button");
+
 	        Timer_Delay(1000);
-	        LCD_DrawStringKern(2, 3, "                ");
+			LCD_Clear(0x00);
+//	        LCD_DrawStringKern(2, 3, "                ");
 	        Timer_Delay(1000);
+
 	        Sprite_Init();                  //reset and clear all flags
         }
 

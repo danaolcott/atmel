@@ -109,6 +109,7 @@ C_SRCS +=  \
 ../src/Bitmap/imgDroneExp3.c \
 ../src/Bitmap/imgDroneExp4.c \
 ../src/Drivers/i2c_driver.c \
+../src/Game/score.c \
 ../src/Sound/Sound.c \
 ../src/Sound/wavExplodePlayer.c \
 ../src/Sound/wavGameOver.c \
@@ -171,6 +172,7 @@ src/Bitmap/imgDroneExp2.o \
 src/Bitmap/imgDroneExp3.o \
 src/Bitmap/imgDroneExp4.o \
 src/Drivers/i2c_driver.o \
+src/Game/score.o \
 src/Sound/Sound.o \
 src/Sound/wavExplodePlayer.o \
 src/Sound/wavGameOver.o \
@@ -226,6 +228,7 @@ src/Bitmap/imgDroneExp2.o \
 src/Bitmap/imgDroneExp3.o \
 src/Bitmap/imgDroneExp4.o \
 src/Drivers/i2c_driver.o \
+src/Game/score.o \
 src/Sound/Sound.o \
 src/Sound/wavExplodePlayer.o \
 src/Sound/wavGameOver.o \
@@ -281,6 +284,7 @@ src/Bitmap/imgDroneExp2.d \
 src/Bitmap/imgDroneExp3.d \
 src/Bitmap/imgDroneExp4.d \
 src/Drivers/i2c_driver.d \
+src/Game/score.d \
 src/Sound/Sound.d \
 src/Sound/wavExplodePlayer.d \
 src/Sound/wavGameOver.d \
@@ -336,6 +340,7 @@ src/Bitmap/imgDroneExp2.d \
 src/Bitmap/imgDroneExp3.d \
 src/Bitmap/imgDroneExp4.d \
 src/Drivers/i2c_driver.d \
+src/Game/score.d \
 src/Sound/Sound.d \
 src/Sound/wavExplodePlayer.d \
 src/Sound/wavGameOver.d \
@@ -505,6 +510,8 @@ LINKER_SCRIPT_DEP+=  \
 
 
 
+
+
 src/ASF/sam/drivers/twihs/%.o: ../src/ASF/sam/drivers/twihs/%.c
 	@echo Building file: $<
 	@echo Invoking: ARM/GNU C Compiler : 6.3.1
@@ -520,6 +527,13 @@ src/Bitmap/%.o: ../src/Bitmap/%.c
 	
 
 src/Drivers/%.o: ../src/Drivers/%.c
+	@echo Building file: $<
+	@echo Invoking: ARM/GNU C Compiler : 6.3.1
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\arm\arm-gnu-toolchain\bin\arm-none-eabi-gcc.exe$(QUOTE)  -x c -mthumb -D__SAME70Q21__ -DDEBUG -D__SAME70Q21__ -DBOARD=SAME70_XPLAINED -Dscanf=iscanf -DARM_MATH_CM7=true -Dprintf=iprintf  -I"../src/ASF/sam/drivers/pwm" -I"../src/ASF/sam/utils" -I"../src/ASF/sam/utils/header_files" -I"../src/ASF/sam/utils/preprocessor" -I"../src/ASF/thirdparty/CMSIS/Include" -I"../src/ASF/thirdparty/CMSIS/Lib/GCC" -I"../src/ASF/sam/utils/fpu" -I"../src/ASF/common/utils" -I"../src/ASF/sam/utils/cmsis/same70/include" -I"../src/ASF/sam/utils/cmsis/same70/source/templates" -I"../src/ASF/common/services/gpio" -I"../src/ASF/sam/drivers/pio" -I"../src/ASF/common/services/clock" -I"../src/ASF/sam/drivers/pmc" -I"../src/ASF/common/utils/stdio/stdio_serial" -I"../src/ASF/common/services/serial/sam_uart" -I"../src/ASF/common/services/serial" -I"../src/ASF/sam/drivers/uart" -I"../src/ASF/sam/drivers/usart" -I"../src/ASF/sam/boards/same70_xplained" -I"../src/ASF/sam/boards" -I"../src/ASF/common/boards" -I"../src/ASF/common/services/ioport" -I"../src/ASF/sam/drivers/mpu" -I"../src" -I"../src/config" -I"../src/ASF/sam/drivers/spi" -I"../src/ASF/sam/drivers/tc" -I"../src/Drivers" -I"../src/ASF/sam/drivers/dacc" -I"../src/ASF/sam/drivers/afec" -I"../src/ASF/common/services/sleepmgr" -I"../src/Display" -I"../src/Bitmap" -I"../src/Game" -I"../src/Sound" -I"../src/ASF/sam/drivers/twihs"  -O1 -fdata-sections -ffunction-sections -mlong-calls -g3 -Wall -mcpu=cortex-m7 -c -pipe -fno-strict-aliasing -Wall -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -std=gnu99 -ffunction-sections -fdata-sections -Wchar-subscripts -Wcomment -Wformat=2 -Wimplicit-int -Wmain -Wparentheses -Wsequence-point -Wreturn-type -Wswitch -Wtrigraphs -Wunused -Wuninitialized -Wunknown-pragmas -Wfloat-equal -Wundef -Wshadow -Wbad-function-cast -Wwrite-strings -Wsign-compare -Waggregate-return -Wmissing-declarations -Wformat -Wmissing-format-attribute -Wno-deprecated-declarations -Wpacked -Wredundant-decls -Wnested-externs -Wlong-long -Wunreachable-code -Wcast-align --param max-inline-insns-single=500 -mfloat-abi=softfp -mfpu=fpv5-sp-d16 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	@echo Finished building: $<
+	
+
+src/Game/%.o: ../src/Game/%.c
 	@echo Building file: $<
 	@echo Invoking: ARM/GNU C Compiler : 6.3.1
 	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\arm\arm-gnu-toolchain\bin\arm-none-eabi-gcc.exe$(QUOTE)  -x c -mthumb -D__SAME70Q21__ -DDEBUG -D__SAME70Q21__ -DBOARD=SAME70_XPLAINED -Dscanf=iscanf -DARM_MATH_CM7=true -Dprintf=iprintf  -I"../src/ASF/sam/drivers/pwm" -I"../src/ASF/sam/utils" -I"../src/ASF/sam/utils/header_files" -I"../src/ASF/sam/utils/preprocessor" -I"../src/ASF/thirdparty/CMSIS/Include" -I"../src/ASF/thirdparty/CMSIS/Lib/GCC" -I"../src/ASF/sam/utils/fpu" -I"../src/ASF/common/utils" -I"../src/ASF/sam/utils/cmsis/same70/include" -I"../src/ASF/sam/utils/cmsis/same70/source/templates" -I"../src/ASF/common/services/gpio" -I"../src/ASF/sam/drivers/pio" -I"../src/ASF/common/services/clock" -I"../src/ASF/sam/drivers/pmc" -I"../src/ASF/common/utils/stdio/stdio_serial" -I"../src/ASF/common/services/serial/sam_uart" -I"../src/ASF/common/services/serial" -I"../src/ASF/sam/drivers/uart" -I"../src/ASF/sam/drivers/usart" -I"../src/ASF/sam/boards/same70_xplained" -I"../src/ASF/sam/boards" -I"../src/ASF/common/boards" -I"../src/ASF/common/services/ioport" -I"../src/ASF/sam/drivers/mpu" -I"../src" -I"../src/config" -I"../src/ASF/sam/drivers/spi" -I"../src/ASF/sam/drivers/tc" -I"../src/Drivers" -I"../src/ASF/sam/drivers/dacc" -I"../src/ASF/sam/drivers/afec" -I"../src/ASF/common/services/sleepmgr" -I"../src/Display" -I"../src/Bitmap" -I"../src/Game" -I"../src/Sound" -I"../src/ASF/sam/drivers/twihs"  -O1 -fdata-sections -ffunction-sections -mlong-calls -g3 -Wall -mcpu=cortex-m7 -c -pipe -fno-strict-aliasing -Wall -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -std=gnu99 -ffunction-sections -fdata-sections -Wchar-subscripts -Wcomment -Wformat=2 -Wimplicit-int -Wmain -Wparentheses -Wsequence-point -Wreturn-type -Wswitch -Wtrigraphs -Wunused -Wuninitialized -Wunknown-pragmas -Wfloat-equal -Wundef -Wshadow -Wbad-function-cast -Wwrite-strings -Wsign-compare -Waggregate-return -Wmissing-declarations -Wformat -Wmissing-format-attribute -Wno-deprecated-declarations -Wpacked -Wredundant-decls -Wnested-externs -Wlong-long -Wunreachable-code -Wcast-align --param max-inline-insns-single=500 -mfloat-abi=softfp -mfpu=fpv5-sp-d16 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
@@ -667,13 +681,6 @@ src/ASF/sam/utils/syscalls/gcc/%.o: ../src/ASF/sam/utils/syscalls/gcc/%.c
 	
 
 src/Display/%.o: ../src/Display/%.c
-	@echo Building file: $<
-	@echo Invoking: ARM/GNU C Compiler : 6.3.1
-	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\arm\arm-gnu-toolchain\bin\arm-none-eabi-gcc.exe$(QUOTE)  -x c -mthumb -D__SAME70Q21__ -DDEBUG -D__SAME70Q21__ -DBOARD=SAME70_XPLAINED -Dscanf=iscanf -DARM_MATH_CM7=true -Dprintf=iprintf  -I"../src/ASF/sam/drivers/pwm" -I"../src/ASF/sam/utils" -I"../src/ASF/sam/utils/header_files" -I"../src/ASF/sam/utils/preprocessor" -I"../src/ASF/thirdparty/CMSIS/Include" -I"../src/ASF/thirdparty/CMSIS/Lib/GCC" -I"../src/ASF/sam/utils/fpu" -I"../src/ASF/common/utils" -I"../src/ASF/sam/utils/cmsis/same70/include" -I"../src/ASF/sam/utils/cmsis/same70/source/templates" -I"../src/ASF/common/services/gpio" -I"../src/ASF/sam/drivers/pio" -I"../src/ASF/common/services/clock" -I"../src/ASF/sam/drivers/pmc" -I"../src/ASF/common/utils/stdio/stdio_serial" -I"../src/ASF/common/services/serial/sam_uart" -I"../src/ASF/common/services/serial" -I"../src/ASF/sam/drivers/uart" -I"../src/ASF/sam/drivers/usart" -I"../src/ASF/sam/boards/same70_xplained" -I"../src/ASF/sam/boards" -I"../src/ASF/common/boards" -I"../src/ASF/common/services/ioport" -I"../src/ASF/sam/drivers/mpu" -I"../src" -I"../src/config" -I"../src/ASF/sam/drivers/spi" -I"../src/ASF/sam/drivers/tc" -I"../src/Drivers" -I"../src/ASF/sam/drivers/dacc" -I"../src/ASF/sam/drivers/afec" -I"../src/ASF/common/services/sleepmgr" -I"../src/Display" -I"../src/Bitmap" -I"../src/Game" -I"../src/Sound" -I"../src/ASF/sam/drivers/twihs"  -O1 -fdata-sections -ffunction-sections -mlong-calls -g3 -Wall -mcpu=cortex-m7 -c -pipe -fno-strict-aliasing -Wall -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -std=gnu99 -ffunction-sections -fdata-sections -Wchar-subscripts -Wcomment -Wformat=2 -Wimplicit-int -Wmain -Wparentheses -Wsequence-point -Wreturn-type -Wswitch -Wtrigraphs -Wunused -Wuninitialized -Wunknown-pragmas -Wfloat-equal -Wundef -Wshadow -Wbad-function-cast -Wwrite-strings -Wsign-compare -Waggregate-return -Wmissing-declarations -Wformat -Wmissing-format-attribute -Wno-deprecated-declarations -Wpacked -Wredundant-decls -Wnested-externs -Wlong-long -Wunreachable-code -Wcast-align --param max-inline-insns-single=500 -mfloat-abi=softfp -mfpu=fpv5-sp-d16 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
-	@echo Finished building: $<
-	
-
-src/Game/%.o: ../src/Game/%.c
 	@echo Building file: $<
 	@echo Invoking: ARM/GNU C Compiler : 6.3.1
 	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\arm\arm-gnu-toolchain\bin\arm-none-eabi-gcc.exe$(QUOTE)  -x c -mthumb -D__SAME70Q21__ -DDEBUG -D__SAME70Q21__ -DBOARD=SAME70_XPLAINED -Dscanf=iscanf -DARM_MATH_CM7=true -Dprintf=iprintf  -I"../src/ASF/sam/drivers/pwm" -I"../src/ASF/sam/utils" -I"../src/ASF/sam/utils/header_files" -I"../src/ASF/sam/utils/preprocessor" -I"../src/ASF/thirdparty/CMSIS/Include" -I"../src/ASF/thirdparty/CMSIS/Lib/GCC" -I"../src/ASF/sam/utils/fpu" -I"../src/ASF/common/utils" -I"../src/ASF/sam/utils/cmsis/same70/include" -I"../src/ASF/sam/utils/cmsis/same70/source/templates" -I"../src/ASF/common/services/gpio" -I"../src/ASF/sam/drivers/pio" -I"../src/ASF/common/services/clock" -I"../src/ASF/sam/drivers/pmc" -I"../src/ASF/common/utils/stdio/stdio_serial" -I"../src/ASF/common/services/serial/sam_uart" -I"../src/ASF/common/services/serial" -I"../src/ASF/sam/drivers/uart" -I"../src/ASF/sam/drivers/usart" -I"../src/ASF/sam/boards/same70_xplained" -I"../src/ASF/sam/boards" -I"../src/ASF/common/boards" -I"../src/ASF/common/services/ioport" -I"../src/ASF/sam/drivers/mpu" -I"../src" -I"../src/config" -I"../src/ASF/sam/drivers/spi" -I"../src/ASF/sam/drivers/tc" -I"../src/Drivers" -I"../src/ASF/sam/drivers/dacc" -I"../src/ASF/sam/drivers/afec" -I"../src/ASF/common/services/sleepmgr" -I"../src/Display" -I"../src/Bitmap" -I"../src/Game" -I"../src/Sound" -I"../src/ASF/sam/drivers/twihs"  -O1 -fdata-sections -ffunction-sections -mlong-calls -g3 -Wall -mcpu=cortex-m7 -c -pipe -fno-strict-aliasing -Wall -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -std=gnu99 -ffunction-sections -fdata-sections -Wchar-subscripts -Wcomment -Wformat=2 -Wimplicit-int -Wmain -Wparentheses -Wsequence-point -Wreturn-type -Wswitch -Wtrigraphs -Wunused -Wuninitialized -Wunknown-pragmas -Wfloat-equal -Wundef -Wshadow -Wbad-function-cast -Wwrite-strings -Wsign-compare -Waggregate-return -Wmissing-declarations -Wformat -Wmissing-format-attribute -Wno-deprecated-declarations -Wpacked -Wredundant-decls -Wnested-externs -Wlong-long -Wunreachable-code -Wcast-align --param max-inline-insns-single=500 -mfloat-abi=softfp -mfpu=fpv5-sp-d16 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 

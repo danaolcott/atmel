@@ -610,6 +610,12 @@
     <Compile Include="src\Drivers\i2c_driver.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\Game\score.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\Game\score.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\Sound\Sound.c">
       <SubType>compile</SubType>
     </Compile>

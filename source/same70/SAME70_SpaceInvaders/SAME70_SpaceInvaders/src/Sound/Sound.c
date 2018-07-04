@@ -32,7 +32,9 @@ DAC - DACC_CHANNEL_0
 
 static uint8_t* waveData;
 static uint32_t waveCounter;
-static void Sound_PlaySound(const SoundData *sound);
+static uint8_t mSoundFlag = 0x00;	//flag to prevent sound overwrites
+
+static void Sound_PlaySound(const SoundData *sound, uint8_t preventOverwrite);
 
 
 //////////////////////////////////////////
@@ -43,6 +45,7 @@ static void Sound_PlaySound(const SoundData *sound);
 void Sound_Init(void)
 {
     Timer0_Stop();
+	mSoundFlag = 0x00;
     DAC_write(DAC_Channel_0, 0x00);
 }
 
@@ -70,6 +73,7 @@ void Sound_InterruptHandler(void)
 
 	else
 	{
+		mSoundFlag = 0x00;
         Timer0_Stop();
         DAC_write(DACC_CHANNEL_0, 0x00);
 	}
@@ -77,44 +81,63 @@ void Sound_InterruptHandler(void)
 
 
 ////////////////////////////////////////////////
-void Sound_PlaySound(const SoundData *sound)
+//if the sound flag is set, don't play anything
+//it means that we dont want other sounds to overwrite it
+//the flag is set for specific sounds.  the flag is
+//cleared when the sound is complete
+void Sound_PlaySound(const SoundData *sound, uint8_t preventOverwrite)
 {
-	waveData = (uint8_t*)sound->pSoundData;		//set the pointer
-	waveCounter = sound->length;				//set the counter
+	if (preventOverwrite == 1)
+	{
+		mSoundFlag = 1;
 
-	//start 11khz timer to call the sound handler
-    Timer0_Start();
+		waveData = (uint8_t*)sound->pSoundData;		//set the pointer
+		waveCounter = sound->length;				//set the counter
+
+		//start 11khz timer to call the sound handler
+		Timer0_Start();
+
+	}
+
+	else if(!mSoundFlag)
+	{
+		waveData = (uint8_t*)sound->pSoundData;		//set the pointer
+		waveCounter = sound->length;				//set the counter
+
+		//start 11khz timer to call the sound handler
+		Timer0_Start();
+	}
 }
 
 
 
 void Sound_Play_PlayerFire(void)
 {
-	Sound_PlaySound(&sound_shootPlayer);
+	Sound_PlaySound(&sound_shootPlayer, 0);
 }
 void Sound_Play_EnemyFire(void)
 {
-	Sound_PlaySound(&sound_shootEnemy);
+	Sound_PlaySound(&sound_shootEnemy, 0);
 }
 
 void Sound_Play_PlayerExplode(void)
 {
-	Sound_PlaySound(&sound_explodePlayer);
+	Sound_PlaySound(&sound_explodePlayer, 1);
 }
 
 void Sound_Play_EnemyExplode(void)
 {
-	Sound_PlaySound(&sound_explodePlayer);
+	Sound_PlaySound(&sound_explodePlayer, 0);
 }
 
 void Sound_Play_GameOver(void)
 {
-	Sound_PlaySound(&sound_gameover);
+	Sound_PlaySound(&sound_gameover, 1);
 }
 
 void Sound_Play_LevelUp(void)
 {
-	Sound_PlaySound(&sound_levelup);
+	Sound_PlaySound(&sound_levelup, 1);
 }
 
 

@@ -15,6 +15,10 @@
 #ifndef SCORE_H_
 #define SCORE_H_
 
+#include <stddef.h>
+#include <stdint.h>
+
+
 #define SCORE_HIGH_SCORE_ADDRESS_LOW		0x80
 #define SCORE_HIGH_SCORE_ADDRESS_HIGH		0x81
 #define SCORE_MAX_LEVEL_ADDRESS				0x82
@@ -23,15 +27,19 @@
 #define SCORE_PLAYER_NAME_ADDRESS			0x90
 
 
+int Score_Init(void);
+
 int Score_SetHighScore(uint16_t value);
 uint16_t Score_GetHighScore(void);
 void Score_ClearHighScore(void);
 
 int Score_SetMaxLevel(uint8_t level);
 uint8_t Score_GetMaxLevel(void);
+void Score_ClearMaxLevel(void);
 
 void Score_SetPlayerName(uint8_t* buffer, uint8_t len);
 uint8_t Score_GetPlayerName(uint8_t* buffer);
+void Score_ClearPlayerName(void);
 
 
 

@@ -9,6 +9,10 @@
 #ifndef I2C_DRIVER_H_
 #define I2C_DRIVER_H_
 
+#include <stddef.h>
+#include <stdint.h>
+
+
 #define I2C_BUFFER_SIZE		64
 
 /** Definition of TWI interrupt ID on board. */
