@@ -6,7 +6,9 @@
 
  Header file for Set/Get high score for the
  game.  Also functions for reading and writing
- the player name that got the high score.
+ the player name that got the high score.  High
+ score is stored on the EEPROM IC using the I2C
+ interface
 
  */ 
 
@@ -15,7 +17,8 @@
 
 #include "score.h"
 #include "i2c_driver.h"
-
+#include "timer_driver.h"			//delay function
+#include "lcd_12864_dfrobot.h"		//lcd functions
 
 //////////////////////////////////////
 //Initializes the high score, level
@@ -93,18 +96,16 @@ void Score_ClearHighScore(void)
 }
 
 /////////////////////////////////////////
-//Write max level to eeprom storage.
+//Write max level to EEPROM storage.
 //reads the value back.  returns 0 if
-//ok, -1 if the value does not match
+//OK, -1 if the value does not match
 int Score_SetMaxLevel(uint8_t level)
 {
 	uint8_t value = level;
 	uint8_t readback = 0x00;
 
-	I2C_EEPROM_Write(SCORE_MAX_LEVEL_ADDRESS, 1, &value, 1);
-
-	//read it back
-	I2C_EEPROM_Read(SCORE_MAX_LEVEL_ADDRESS, 1, &readback, 1);
+	I2C_EEPROM_Write(SCORE_MAX_LEVEL_ADDRESS, 1, &value, 1);		//write
+	I2C_EEPROM_Read(SCORE_MAX_LEVEL_ADDRESS, 1, &readback, 1);		//read back
 
 	if (readback != value)
 		return -1;
@@ -114,7 +115,7 @@ int Score_SetMaxLevel(uint8_t level)
 
 ///////////////////////////////////////////
 //Get Max Level
-//Reads max level from eeprom and returns value
+//Reads max level from EEPROM and returns value
 uint8_t Score_GetMaxLevel(void)
 {
 	uint8_t readback = 0x00;
@@ -130,9 +131,9 @@ void Score_ClearMaxLevel(void)
 }
 
 //////////////////////////////////////////////////
-//Set player name in eeprom.
+//Set player name in EEPROM.
 //stores up to SCORE_PLAYER_NAME_SIZE bytes in 
-//eeprom.  all bytes not used out of max size
+//EEPROM.  all bytes not used out of max size
 //are set to 0x00.  len bytes must be less than
 //or equal to max size.
 void Score_SetPlayerName(uint8_t* buffer, uint8_t len)
@@ -149,7 +150,6 @@ void Score_SetPlayerName(uint8_t* buffer, uint8_t len)
 		temp = buffer[i];	
 		I2C_EEPROM_Write(SCORE_PLAYER_NAME_ADDRESS + i, 1, &temp, 1);
 	}
-
 }
 
 ////////////////////////////////////////////////
@@ -186,6 +186,40 @@ void Score_ClearPlayerName(void)
 {
 	uint8_t value[SCORE_PLAYER_NAME_SIZE] = {0x00};
 	I2C_EEPROM_Write(SCORE_PLAYER_NAME_ADDRESS, 1, value, SCORE_PLAYER_NAME_SIZE);
+}
+
+
+
+//////////////////////////////////////////////
+//We have a new high score.
+//Display something on the lcd and update the
+//high score
+void Score_DisplayNewHighScore(uint16_t score, uint8_t level)
+{
+	uint8_t buffer[SCORE_PLAYER_NAME_SIZE] = {0x00};
+	uint8_t buffer2[16] = {0x00};
+	uint16_t oldScore = Score_GetHighScore();
+	uint8_t oldLevel = Score_GetMaxLevel();
+	uint8_t len = Score_GetPlayerName(buffer);
+
+	LCD_Clear(0x00);
+
+	LCD_DrawStringKernLength(0, 3, buffer, len);			//name
+	LCD_DrawStringKern(1, 3, "Old Stats");					//header
+
+	int n = sprintf((char*)buffer2, "Score:%d", oldScore);	
+	LCD_DrawStringKernLength(2, 3, buffer2, n);				//old
+
+	n = sprintf((char*)buffer2, "Level:%d", oldLevel);		//old
+	LCD_DrawStringKernLength(3, 3, buffer2, n);
+
+	LCD_DrawStringKern(5, 3, "New Stats");					//header
+
+	n = sprintf((char*)buffer2, "Score:%d", score);
+	LCD_DrawStringKernLength(6, 3, buffer2, n);				//new
+
+	n = sprintf((char*)buffer2, "Level:%d", level);			//new
+	LCD_DrawStringKernLength(7, 3, buffer2, n);
 }
 
 

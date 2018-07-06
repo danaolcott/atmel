@@ -27,22 +27,22 @@ drone image 24x10
 
 #include "Sound.h"
 
-//player, enemy, missle
+//player, enemy, missile, drone
 static PlayerStruct mPlayer;
 static EnemyStruct mEnemy[NUM_ENEMY];
 static MissileStruct mEnemyMissile[NUM_MISSILE];
 static MissileStruct mPlayerMissile[NUM_MISSILE];
 static DroneStruct mDrone;
 
-//flag set from button isr, indicating there is a missile
-//to launch in the main loop
-static uint8_t mPlayerMissileLaunchFlag;
-static uint16_t mGameScore;
-static uint16_t mGameLevel;
-static uint8_t mGameOverFlag = 0;
+//flags
+static uint8_t mPlayerMissileLaunchFlag;		//set in button isr
+static uint16_t mGameScore;						//score
+static uint16_t mGameLevel;						//level
+static uint8_t mGameOverFlag = 0;				//set when last player killed
 
 ///////////////////////////////////////////
-//Local delay that does not follow the
+//Dummy delay for showing sequence of image
+//events.  ie, player explode, etc
 //
 void Sprite_DummyDelay(uint32_t delay)
 {
@@ -75,6 +75,7 @@ void Sprite_Init(void)
 
 
 //////////////////////////////////
+//Init player struct
 void Sprite_Player_Init(void)
 {
     mPlayer.numLives = PLAYER_DEFAULT_LIVES;
@@ -86,6 +87,8 @@ void Sprite_Player_Init(void)
 }
 
 
+////////////////////////////////////
+//Init enemy struct array
 void Sprite_Enemy_Init(void)
 {
     uint8_t count = 0;
@@ -93,15 +96,15 @@ void Sprite_Enemy_Init(void)
     {
         for (int j = 0 ; j < NUM_ENEMY_COLS ; j++)
         {
-            mEnemy[count].life = 1;                                 //life - 1 = alive, 0 = dead
-            mEnemy[count].image = &imageEnemy1;                          //pointer to image data
-            mEnemy[count].points = 30;                              //points
+            mEnemy[count].life = 1;                               //life - 1 = alive, 0 = dead
+            mEnemy[count].image = &imageEnemy1;                   //pointer to image data
+            mEnemy[count].points = 30;                            //points
             mEnemy[count].x = j * imageEnemy1.xSize;              //x position
             mEnemy[count].y = i * imageEnemy1.ySize;              //y position
-            mEnemy[count].sizeX = imageEnemy1.xSize;                     //image width
-            mEnemy[count].sizeY = imageEnemy1.ySize;                     //image height
-            mEnemy[count].horizDirection = SPRITE_DIRECTION_LEFT;   //initial direction
-            mEnemy[count].vertDirection = SPRITE_VERTICAL_DOWN;     //moving down
+            mEnemy[count].sizeX = imageEnemy1.xSize;              //image width
+            mEnemy[count].sizeY = imageEnemy1.ySize;              //image height
+            mEnemy[count].horizDirection = SPRITE_DIRECTION_LEFT; //initial direction
+            mEnemy[count].vertDirection = SPRITE_VERTICAL_DOWN;   //moving down
 
             count++;
         }
@@ -110,26 +113,26 @@ void Sprite_Enemy_Init(void)
 
 
 ///////////////////////////////////////
-//init the missile arrays for player and 
-//enemy missiles
+//init the missile arrays for player
+//and enemy
 void Sprite_Missile_Init(void)
 {
 
     for (int i = 0 ; i < NUM_MISSILE ; i++)
     {
-        mEnemyMissile[i].life = 0;                          //life - 1 = alive, 0 = dead
-        mEnemyMissile[i].image = &imageMissile1;                   //pointer to image data
+        mEnemyMissile[i].life = 0;                      //life - 1 = alive, 0 = dead
+        mEnemyMissile[i].image = &imageMissile1;		//pointer to image data
         mEnemyMissile[i].x = 0;
         mEnemyMissile[i].y = 0;
-        mEnemyMissile[i].sizeX = imageMissile1.xSize;              //image width
-        mEnemyMissile[i].sizeY = imageMissile1.ySize;              //image height
+        mEnemyMissile[i].sizeX = imageMissile1.xSize;   //image width
+        mEnemyMissile[i].sizeY = imageMissile1.ySize;   //image height
 
-        mPlayerMissile[i].life = 0;                          //life - 1 = alive, 0 = dead
-        mPlayerMissile[i].image = &imageMissile1;                   //pointer to image data
+        mPlayerMissile[i].life = 0;                     //life - 1 = alive, 0 = dead
+        mPlayerMissile[i].image = &imageMissile1;       //pointer to image data
         mPlayerMissile[i].x = 0;
         mPlayerMissile[i].y = 0;
-        mPlayerMissile[i].sizeX = imageMissile1.xSize;              //image width
-        mPlayerMissile[i].sizeY = imageMissile1.ySize;              //image height
+        mPlayerMissile[i].sizeX = imageMissile1.xSize;  //image width
+        mPlayerMissile[i].sizeY = imageMissile1.ySize;  //image height
 
     }
 }
@@ -137,6 +140,10 @@ void Sprite_Missile_Init(void)
 
 //////////////////////////////////////////
 //Init Drone
+//Drone struct also has a timeout that 
+//ticks down for each game loop.  Drone
+//is cleared when moving off screen or timeout
+//or shot by player
 void Sprite_Drone_Init(void)
 {
 	mDrone.life = 0;
@@ -306,20 +313,12 @@ void Sprite_Missle_Move(void)
 
 		//player missile off the screen?
 		if ((mPlayerMissile[i].life == 1) && (mPlayerMissile[i].y <= SPRITE_MIN_Y))
-		mPlayerMissile[i].life = 0;
+			mPlayerMissile[i].life = 0;
 
-		//player missile hit an enemy? - Player missile hit
-		//the drone??
-
-		//if the missile is alive...
-		//for each live enemy, check the x and y position of the missle, top
-		//center of the missile within the enemy box
-		//
-		//Add player missile hit the drone
-		//
+		//Player missile hit enemy or drone
 		if (mPlayerMissile[i].life == 1)
 		{
-			//missile hit drone
+			//missile hit drone...
 			if (mDrone.life == 1)
 			{
 				mX = mPlayerMissile[i].x + (mPlayerMissile[i].sizeX / 2);
@@ -339,7 +338,7 @@ void Sprite_Missle_Move(void)
 				}
 			}
 
-			//test for player missile hit enemy
+			//missile hit enemy...
 			for (int j = 0 ; j < NUM_ENEMY ; j++)
 			{
 				//if the enemy is alive...
@@ -555,7 +554,7 @@ void Sprite_Player_Missle_Launch(void)
 
 ////////////////////////////////////////
 //Launch missile from enemy to player
-//get the num ememy remaining and get
+//get the num enemy remaining and get
 //a random number.  Fire missile from
 //enemy location.  
 void Sprite_Enemy_Missle_Launch(void)
@@ -591,7 +590,6 @@ void Sprite_Drone_Missle_Launch(void)
 	mEnemyMissile[nextMissile].y = mDrone.y + mDrone.sizeY;
 
 	Sound_Play_EnemyFire();
-
 }
 
 
@@ -657,6 +655,10 @@ void Sprite_ClearGameOverFlag(void)
     mGameOverFlag = 0;
 }
 
+void Sprite_SetGameOverFlag(void)
+{
+	mGameOverFlag = 1;
+}
 
 
 
@@ -682,10 +684,8 @@ int Sprite_Score_EnemyHit(uint8_t enemyIndex, uint8_t missileIndex)
     return remaining;
 }
 
-
-
-
-
+///////////////////////////////////////////////////
+//Player hit drone
 void Sprite_Score_DroneHit(uint8_t missileIndex)
 {
 	Sound_Play_EnemyExplode();                    		//play sound
@@ -705,7 +705,7 @@ void Sprite_Score_DroneHit(uint8_t missileIndex)
 
 
 ////////////////////////////////////////////////
-//Enemy Missile Hit Player
+//Enemy or Drone Missile Hit Player
 //remove one player, set enemy missile[index] live
 //to 0, play a sound... 
 int Sprite_Score_PlayerHit(uint8_t missileIndex)
@@ -753,9 +753,6 @@ uint8_t Sprite_GetNumPlayers(void)
 {
     return mPlayer.numLives;
 }
-
-
-
 
 int Sprite_GetNumEnemy(void)
 {

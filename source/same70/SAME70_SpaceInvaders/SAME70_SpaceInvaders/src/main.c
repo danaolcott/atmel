@@ -76,10 +76,10 @@
 #include "conf_board.h"
 #include "conf_clock.h"
 
-#include "timer_driver.h"
-#include "spi_driver.h"
-#include "dac_driver.h"
-#include "adc_driver.h"
+#include "timer_driver.h"			//timebase and 11khz timer
+#include "spi_driver.h"				//spi - lcd control
+#include "dac_driver.h"				//dac- - sound output
+#include "adc_driver.h"				//adc - read joystick
 #include "gpio_driver.h"			//gpio and buttons
 #include "i2c_driver.h"				//eeprom
 #include "lcd_12864_dfrobot.h"		//lcd driver
@@ -144,7 +144,7 @@ int main(void)
 	//Score_Init();			//init high score, level, name
 	LCD_BacklightOn();		//turn on the backlight
 
-	Sprite_ClearGameOverFlag();
+	Sprite_SetGameOverFlag();		//start with press button to begin
 
 	/////////////////////////////////////////
 	//Main loop
@@ -155,6 +155,25 @@ int main(void)
         if (Sprite_GetGameOverFlag() == 1)
         {
 	        Sound_Play_GameOver();
+
+			//evaluate the high score and current score
+			if (Sprite_GetGameScore() > Score_GetHighScore())
+			{
+				while(Sprite_GetGameOverFlag() == 1)
+				{
+					Score_DisplayNewHighScore(Sprite_GetGameScore(), Sprite_GetGameLevel());
+					Timer_Delay(1000);
+					LCD_Clear(0x00);
+					Timer_Delay(1000);
+				}
+
+				//update the high score and level here
+				Score_SetHighScore(Sprite_GetGameScore());
+				Score_SetMaxLevel(Sprite_GetGameLevel());
+
+				Sprite_SetGameOverFlag();
+			}
+
 	        Timer_Delay(2000);
         }
 

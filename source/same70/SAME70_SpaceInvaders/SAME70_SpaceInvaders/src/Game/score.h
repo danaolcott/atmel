@@ -4,9 +4,11 @@
  * Created: 7/3/2018 12:56:29 AM
  *  Author: danao
 
-  Header file for Set/Get high score for the
-  game.  Also functions for reading and writing
-  the player name that got the high score.
+   Header file for Set/Get high score for the
+   game.  Also functions for reading and writing
+   the player name that got the high score.  High
+   score is stored on the EEPROM IC using the I2C
+   interface
 
 
  */ 
@@ -41,6 +43,7 @@ void Score_SetPlayerName(uint8_t* buffer, uint8_t len);
 uint8_t Score_GetPlayerName(uint8_t* buffer);
 void Score_ClearPlayerName(void);
 
+void Score_DisplayNewHighScore(uint16_t score, uint8_t level);
 
 
 

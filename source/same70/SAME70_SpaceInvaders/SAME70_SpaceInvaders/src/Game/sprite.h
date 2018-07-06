@@ -1,5 +1,19 @@
 /*
-Sprite header file
+////////////////////////////////////////////////////////
+Sprite Files
+Provides control and access to the sprites in the system.
+Main sprites include the following:
+Player - single player that moves in x direction
+Enemy - moves left and right, drops down one row each time
+missile - moves up or down depending on who's shooting the missile
+drone - drones cross the LCD periodically and fire at the player.
+
+image names:
+imagePlayer - 24x10
+imageEnemy - 16x16
+imageMissile - 8 x 8
+drone image 24x10
+/////////////////////////////////////////////////////////
 
 */
 
@@ -149,6 +163,7 @@ void Sprite_ClearPlayerMissileLaunchFlag(void);
 
 uint8_t Sprite_GetGameOverFlag(void);
 void Sprite_ClearGameOverFlag(void);
+void Sprite_SetGameOverFlag(void);
 
 void Sprite_UpdateDisplay(void);
 void Sprite_Player_Draw(void);
