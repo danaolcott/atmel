@@ -141,7 +141,7 @@ int main(void)
 
 	//comment out this if the score and player
 	//are already set
-	//Score_Init();			//init high score, level, name
+	Score_Init();			//init high score, level, name
 	LCD_BacklightOn();		//turn on the backlight
 
 	Sprite_SetGameOverFlag();		//start with press button to begin

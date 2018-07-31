@@ -309,7 +309,7 @@ void Sprite_Missle_Move(void)
 		//player missiles
 		//player missile - moving up (y-) - live = 1, move
 		if ((mPlayerMissile[i].life == 1) && (mPlayerMissile[i].y > SPRITE_MIN_Y))
-		mPlayerMissile[i].y--;
+			mPlayerMissile[i].y-=2;
 
 		//player missile off the screen?
 		if ((mPlayerMissile[i].life == 1) && (mPlayerMissile[i].y <= SPRITE_MIN_Y))
@@ -375,12 +375,12 @@ void Sprite_Missle_Move(void)
 		///////////////////////////////////////////////////
 		//enemy missile - these go all the way to the bottom
 		//of the screen - LCD_HEIGHT
-		if ((mEnemyMissile[i].life == 1) && ((mEnemyMissile[i].y + mEnemyMissile[i].sizeY) < LCD_HEIGHT))
-		mEnemyMissile[i].y++;
+		if ((mEnemyMissile[i].life == 1) && ((mEnemyMissile[i].y + mEnemyMissile[i].sizeY) < (LCD_HEIGHT - 1)))
+			mEnemyMissile[i].y+=2;	
 
 		//enemy missile off the screen?
-		if ((mEnemyMissile[i].life == 1) && ((mEnemyMissile[i].y + mEnemyMissile[i].sizeY) >= LCD_HEIGHT))
-		mEnemyMissile[i].life = 0;
+		if ((mEnemyMissile[i].life == 1) && ((mEnemyMissile[i].y + mEnemyMissile[i].sizeY) >= (LCD_HEIGHT - 1)))
+			mEnemyMissile[i].life = 0;
 
 		//enemy missile hit the player... evaluate bottom of missile
 		//with player box
