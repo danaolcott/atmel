@@ -139,9 +139,8 @@ int main(void)
 	Sprite_Init();			//initialize the game engine
 	Sound_Init();			//init the sound engine
 
-	//comment out this if the score and player
-	//are already set
-	Score_Init();			//init high score, level, name
+	//comment this out of score and player are set
+	//Score_Init();			//init high score, level, name
 	LCD_BacklightOn();		//turn on the backlight
 
 	Sprite_SetGameOverFlag();		//start with press button to begin
@@ -233,7 +232,10 @@ int main(void)
         }
 
         //launch any new missiles from enemy?
-        uint16_t interval = 30 - (2 * Sprite_GetGameLevel());
+        int16_t interval = 30 - (2 * Sprite_GetGameLevel());
+		if (interval < 0)
+			interval = interval * (-1);
+
         if (interval < 5)
 			interval = 5;
 
@@ -243,11 +245,25 @@ int main(void)
         }
 
 		////////////////////////////////////////////////
-		//launch drone - every 20 game cycles
-		if (!(gCounter % 20))
+		//launch drone - function of the game level
+		//if the level is less than 10, launch every
+		//20.  if the level is more than 10, launch
+		//every 15 game cycles
+		if (Sprite_GetGameLevel() < 10)
 		{
-			Sprite_Drone_Launch();
+			if (!(gCounter % 20))
+			{
+				Sprite_Drone_Launch();
+			}
 		}
+		else
+		{
+			if (!(gCounter % 15))
+			{
+				Sprite_Drone_Launch();
+			}
+		}
+
 
 		Sprite_Player_Move();		//move player
 		Sprite_Enemy_Move();		//move enemy
