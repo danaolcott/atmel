@@ -28,7 +28,7 @@ drone image 24x10
 #include "Sound.h"
 
 //player, enemy, missile, drone
-static PlayerStruct mPlayer;
+volatile PlayerStruct mPlayer;
 static EnemyStruct mEnemy[NUM_ENEMY];
 static MissileStruct mEnemyMissile[NUM_MISSILE];
 static MissileStruct mPlayerMissile[NUM_MISSILE];
@@ -303,6 +303,8 @@ void Sprite_Missle_Move(void)
 {
 	uint16_t mX, mY, bot, top, left, right = 0x00;
 
+	uint8_t playerHitFlag = 0;
+
 	for (int i = 0 ; i < NUM_MISSILE ; i++)
 	{
 		////////////////////////////////////////////////
@@ -398,13 +400,18 @@ void Sprite_Missle_Move(void)
 			{
 				//score hit!! - pass the enemy missile index
 				//returns the num players remaining
-				int rem = Sprite_Score_PlayerHit(i);
-
-				if (!rem)
+				int remaining = 0;
+				if (!playerHitFlag)
 				{
-					//set the game over flag and poll in main
-					mGameOverFlag = 1;
+					remaining = Sprite_Score_PlayerHit(i);
+					if (!remaining)
+						mGameOverFlag = 1;
+					i = NUM_MISSILE - 1;
+					break;
 				}
+
+				//set a flag here - first time only
+				playerHitFlag = 1;
 			}
 		}
 	}
@@ -718,16 +725,16 @@ int Sprite_Score_PlayerHit(uint8_t missileIndex)
     if (mPlayer.numLives > 1)
     {
         //play explosion sequence at player x and y
-        Sound_Play_PlayerExplode();                     //play small explosion
         Sprite_Player_Explode(mPlayer.x, mPlayer.y);    //play explosion
         mPlayer.numLives--;                             //decrement
+		Sound_Play_PlayerExplode();                     //play small explosion
     }
 
     else if (mPlayer.numLives == 1)
     {
-        Sound_Play_PlayerExplode();                     //play small explosion
         Sprite_Player_Explode(mPlayer.x, mPlayer.y);    //play explosion
         mPlayer.numLives = 0;                             //decrement
+		Sound_Play_PlayerExplode();                     //play small explosion
     }
 
     return mPlayer.numLives;

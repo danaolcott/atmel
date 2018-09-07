@@ -68,7 +68,7 @@ typedef enum
 //player
 typedef struct
 {
-	uint8_t numLives;
+	int numLives;
 	uint32_t x;
 	uint32_t y;
 	uint32_t sizeX;
