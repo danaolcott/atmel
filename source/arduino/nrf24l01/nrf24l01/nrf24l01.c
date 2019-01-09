@@ -621,8 +621,7 @@ void nrf24_ISR(void)
     uint8_t rxBuffer[32] = {0x00};
     uint8_t status = nrf24_getStatus();
     uint16_t adcValue, adcLSB, adcMSB = 0x00;
-    uint8_t decimalBuffer[32] = {0x00};
-    uint8_t numChars = 0x00;
+    uint8_t output[64] = {0x00};
 
 
     //RX_DR Interrupt - Data Received
@@ -634,10 +633,14 @@ void nrf24_ISR(void)
             len = nrf24_readRxData(rxBuffer, &pipe);            //read the packet and pipe
 
             //output result
-            n = sprintf(decimalBuffer, "RX(%d): ", pipe);
-            Usart_sendArray(decimalBuffer, n);                   //forward it to the uart
-            Usart_sendArray(rxBuffer, len);           //forward it to the uart
+            n = sprintf(output, "RX(%d): ", pipe);
+            Usart_sendArray(output, n);                   //forward it to the uart
+
+            n = utility_data2HexBuffer(rxBuffer, 8, output);
+            Usart_sendArray(output, n);                   //forward it to the uart
+
             Usart_sendString("\r\n");
+
             
             //Testing - 0xFE, MID_ADC_TEMP1, LSB, MSB in millivolts
             if ((rxBuffer[0] == 0xFE) & (rxBuffer[1] == MID_ADC_TEMP1))
@@ -647,11 +650,11 @@ void nrf24_ISR(void)
                 adcValue = (adcMSB << 8) | (adcLSB & 0xFF);
 
                 //uint8_t utility_decimal2Buffer(uint16_t value, uint8_t* output);
-                numChars = utility_decimal2Buffer(adcValue, decimalBuffer);
+                n = utility_decimal2Buffer(adcValue, output);
 
                 //output the result....
                 Usart_sendString("ADC: ");
-                Usart_sendArray(decimalBuffer, numChars);
+                Usart_sendArray(output, n);
                 Usart_sendString("\r\n");
             }
 

@@ -111,10 +111,10 @@ int main()
     SPI_init();			            //init spi
     SPI_setSpeed(SPI_SPEED_1_MHZ);
     Usart_init(9600);    
-    nrf24_init(NRF24_MODE_TX);
+    nrf24_init(NRF24_MODE_RX);
 
-    uint8_t txBuffer[8] = "ARDUINO1";
-    uint8_t pipe = 0x00;
+//    uint8_t txBuffer[8] = "ARDUINO1";
+//    uint8_t pipe = 0x00;
 
 
     while(1)
@@ -125,17 +125,17 @@ int main()
 
         //send something
         //void nrf24_transmitData(uint8_t pipe, uint8_t* buffer, uint8_t length);
-        nrf24_transmitData(pipe, txBuffer, 8);
+//        nrf24_transmitData(pipe, txBuffer, 8);
 
         //write something
         //Usart_sendString
         Usart_sendString("Hello From Arduino\r\n");
 
 
-        if (pipe < 5)
-            pipe++;
-        else
-            pipe = 0;
+//        if (pipe < 5)
+//            pipe++;
+ //       else
+ //           pipe = 0;
 
         Delay(2000);
     }
