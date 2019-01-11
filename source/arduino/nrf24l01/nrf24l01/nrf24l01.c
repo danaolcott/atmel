@@ -621,6 +621,7 @@ void nrf24_ISR(void)
     uint8_t rxBuffer[32] = {0x00};
     uint8_t status = nrf24_getStatus();
     uint16_t adcValue, adcLSB, adcMSB = 0x00;
+    uint8_t tempInt, tempFrac = 0x00;
     uint8_t output[64] = {0x00};
 
 
@@ -640,22 +641,36 @@ void nrf24_ISR(void)
             Usart_sendArray(output, n);                   //forward it to the uart
 
             Usart_sendString("\r\n");
-
             
             //Testing - 0xFE, MID_ADC_TEMP1, LSB, MSB in millivolts
-            if ((rxBuffer[0] == 0xFE) & (rxBuffer[1] == MID_ADC_TEMP1))
+            if (rxBuffer[0] == 0xFE)
             {
-                adcLSB = (uint16_t)rxBuffer[2];
-                adcMSB = (uint16_t)rxBuffer[3];
+
+                //process buffer...
+
+                adcLSB = (uint16_t)rxBuffer[3];
+                adcMSB = (uint16_t)rxBuffer[4];
                 adcValue = (adcMSB << 8) | (adcLSB & 0xFF);
 
-                //uint8_t utility_decimal2Buffer(uint16_t value, uint8_t* output);
-                n = utility_decimal2Buffer(adcValue, output);
+                tempInt = rxBuffer[5];
+                tempFrac = rxBuffer[6];
 
                 //output the result....
                 Usart_sendString("ADC: ");
+                n = utility_decimal2Buffer(adcValue, output);
                 Usart_sendArray(output, n);
                 Usart_sendString("\r\n");
+
+                Usart_sendString("TEMP: ");
+                n = utility_decimal2Buffer(tempInt, output);
+                Usart_sendArray(output, n);
+
+                Usart_sendString(".");
+                n = utility_decimal2Buffer(tempFrac, output);
+                Usart_sendArray(output, n);
+
+                Usart_sendString("\r\n");
+
             }
 
             else
