@@ -54,6 +54,12 @@ Interface:
 #include "utility.h"        //print functions
 
 
+
+
+///////////////////////////////////////////////
+
+
+
 ///////////////////////////////////////////////
 //NRF24 Global Variables
 static NRF24_Mode_t mNRF24_Mode = NRF24_MODE_RX;
@@ -82,6 +88,29 @@ static const uint8_t mTxAddress_Pipe2[5] = {0xC3, 0xC2, 0xC2, 0xC2, 0xC2};
 static const uint8_t mTxAddress_Pipe3[5] = {0xC4, 0xC2, 0xC2, 0xC2, 0xC2};
 static const uint8_t mTxAddress_Pipe4[5] = {0xC5, 0xC2, 0xC2, 0xC2, 0xC2};
 static const uint8_t mTxAddress_Pipe5[5] = {0xC6, 0xC2, 0xC2, 0xC2, 0xC2};
+
+
+
+////////////////////////////////////////////////////
+//Packet Handler Functions
+static int nrf24_getPacketTableIndex(NRF24_MID_t mid);
+
+/////////////////////////////////////////////////
+//NRF24_PacketStruct Function Pointers
+//for use with the NRF24_PacketTable
+static void pk_mcp9700a(uint8_t pipe, uint8_t* buffer, uint8_t size);
+
+
+////////////////////////////////////////////////
+//NRF24_PacketTable.  Listing of function pointers
+//for each MID.
+
+static const NRF24_PacketStruct NRF24_PacketTable[] = 
+{
+    {0,     MID_TEMP_MCP9700A,      pk_mcp9700a},
+    {0xFF,  0xFF,                   NULL},
+};
+
 
 
 //////////////////////////////////////////////
@@ -279,16 +308,13 @@ void nrf24_init(NRF24_Mode_t initialMode)
     //Register Configuration
     nrf24_writeReg(NRF24_REG_CONFIG, 0x00);         //No CRC, Enable All Interrupts    
     nrf24_writeReg(NRF24_REG_EN_AA, 0x00);          //Disable auto ack - if enable, CRC forced high
-    nrf24_writeReg(NRF24_REG_CONFIG, 0x00);         //send again
-        
+    nrf24_writeReg(NRF24_REG_CONFIG, 0x00);         //send again        
     nrf24_dummyDelay(100000);                       //wait a while
-    
     nrf24_writeReg(NRF24_REG_EN_RXADDR, 0x3F);      //enable all data pipes    
-    nrf24_writeReg(NRF24_REG_SETUP_RETR, 0x00);     //disable retry / resend data
-    
+    nrf24_writeReg(NRF24_REG_SETUP_RETR, 0x00);     //disable retry / resend data    
     nrf24_writeReg(NRF24_REG_RF_SETUP, 0x06);           //set power = 0dm, data rate = 1mbs
     
-    nrf24_writeReg(NRF24_REG_RF_CH, NRF24_CHANNEL);     //see .h for channel def.
+    nrf24_writeReg(NRF24_REG_RF_CH, NRF24_CHANNEL_DEFAULT);     //see .h for channel def.
         
     //Set the payload widths on all data pipes
     nrf24_writeReg(NRF24_REG_RX_PW_P0, NRF24_PIPE_WIDTH & 0x3F);
@@ -333,6 +359,10 @@ NRF24_Mode_t nrf24_getMode(void)
     return mNRF24_Mode;
 }
 
+
+/////////////////////////////////////////////////
+//Set the radio state as receiving or transmitting
+//For use with repeater mode
 void nrf24_setState(NRF24_State_t state)
 {
     if (state == NRF24_STATE_RX)
@@ -361,21 +391,30 @@ NRF24_State_t nrf24_getState(void)
 }
 
 
-
+/////////////////////////////////////////////
+//Returns the status of the incoming data in
+//repeater mode.  Poll the flag in a main loop
+//outside of interrupt for retransmitting.
 uint8_t nrf24_getRepeaterFlag(void)
 {
     return mRepeaterFlag;
 }
 
+////////////////////////////////////////////////
+//Flag set when incoming data is received in
+//repeater mode.  Poll the flag in a main loop
+//outside of interrupt for retransmitting.
 void nrf24_setRepeaterFlag(uint8_t value)
 {
     mRepeaterFlag = value;    
 }
 
 
-////////////////////////////////////////////
-//loads the contents of buffer with contents 
-//of mRepeaterBuffer, returns the number of bytes
+////////////////////////////////////////////////
+//Used in repeater mode, Contains the contents of
+//incoming data for use in re-transmitting.  Used
+//with the repeater flag.  Returns number of bytes
+//for retransmitting.
 uint8_t nrf24_getRepeaterBuffer(uint8_t *buffer)
 {
     int i = 0;
@@ -389,9 +428,8 @@ uint8_t nrf24_getRepeaterBuffer(uint8_t *buffer)
 
 
 
-///////////////////////////////////////
-//send single byte 0xFF and return the 
-//contents of the SPI_DR
+///////////////////////////////////////////////
+//Status register of the NRF24L01 radio.
 uint8_t nrf24_getStatus(void)
 {
     uint8_t status = 0x00;
@@ -401,7 +439,8 @@ uint8_t nrf24_getStatus(void)
     return status;    
 }
 
-
+////////////////////////////////////////////////
+//Status of the TX/RX fifos.
 uint8_t nrf24_getFifoStatus(void)
 {
     uint8_t status = nrf24_readReg(NRF24_REG_FIFO_STATUS);
@@ -505,13 +544,9 @@ void nrf24_writeTXPayLoad(uint8_t* buffer, uint8_t length)
 //////////////////////////////////////////////////////
 //Transmit Data
 //Uses TX_DS interrupt to set the transmit complete flag
-//Clear the interrupt bits
-//flush the tx register
-//write data to the tx payload register
-//pulse the ce pin and wait...
-//
-//Added check - if the mode is repeater mode,
-//return to receive state
+//The flag is polled along with a timeout in case the
+//interrupt fails.  If radio is in repeater mode, return
+//to receiving.  
 void nrf24_transmitData(uint8_t pipe, uint8_t* buffer, uint8_t length)
 {
     uint16_t timeout = NRF24_TX_TIMEOUT;    //reset the counter    
@@ -542,7 +577,7 @@ void nrf24_transmitData(uint8_t pipe, uint8_t* buffer, uint8_t length)
         nrf24_writeReg(NRF24_REG_STATUS, NRF24_BIT_TX_DS | NRF24_BIT_MAX_RT);
     }
     
-    else if(mTransmitCompleteFlag == 1)
+    else if (mTransmitCompleteFlag == 1)
     {
         Usart_sendString("Polling - Transmit Complete: ");
 
@@ -694,6 +729,12 @@ uint8_t nrf24_readRxData(uint8_t* data, uint8_t* pipe)
 
 
 
+
+
+
+
+
+
 ////////////////////////////////////////////////////////
 //Called from the interrupt IRQ pin handler.
 //Mapped to pin PA2 - input, falling edge
@@ -805,7 +846,42 @@ void nrf24_ISR(void)
 ///////////////////////////////////////////////////
 //Process the packet
 //Assumes in RX mode, start and stop bytes are correct.
+//get the index of the function to run from the MID
+//MID is byte 2 of the packet
 void nrf24_processPacket(uint8_t pipe, uint8_t* buffer, uint8_t size)
+{
+    int index = nrf24_getPacketTableIndex(buffer[2]);
+
+    if (index >= 0)
+        NRF24_PacketTable[index].functionPtr(pipe, buffer, size);
+    
+    else
+        Usart_sendString("Process Packet Failed: Invalid MID\r\n");
+}
+
+
+
+///////////////////////////////////////////////
+//PacketTable Functions
+int nrf24_getPacketTableIndex(NRF24_MID_t mid)
+{
+    int index = 0;
+    while (index != 0xFF)
+    {
+        //return the table index matching the MID
+        if (mid == NRF24_PacketTable[index].MID)
+           return index;
+
+        index++;
+    }
+
+    return -1;
+}
+
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
+//NRF24_PacketStruct Function Pointers
+void pk_mcp9700a(uint8_t pipe, uint8_t* buffer, uint8_t size)
 {
     int n = 0x00;
     uint8_t output[64] = {0x00};
@@ -817,36 +893,33 @@ void nrf24_processPacket(uint8_t pipe, uint8_t* buffer, uint8_t size)
     n = sprintf(output, "RX(%d): ", pipe);
     Usart_sendArray(output, n);                   //forward it to the uart
 
-    n = utility_data2HexBuffer(buffer, NRF24_PIPE_WIDTH, output);
+    n = utility_data2HexBuffer(buffer, size, output);
     Usart_sendArray(output, n);                   //forward it to the uart
     Usart_sendString("\r\n");
 
-    //MID ADC
-    if (buffer[2] == MID_TEMP_MCP9700A)
-    {
-        adcLSB = (uint16_t)buffer[3];
-        adcMSB = (uint16_t)buffer[4];
-        adcValue = (adcMSB << 8) | (adcLSB & 0xFF);
+    //lsb / msb
+    adcLSB = (uint16_t)buffer[3];
+    adcMSB = (uint16_t)buffer[4];
+    adcValue = (adcMSB << 8) | (adcLSB & 0xFF);
 
-        tempInt = buffer[5];
-        tempFrac = buffer[6];
+    tempInt = buffer[5];
+    tempFrac = buffer[6];
 
-        //output the result....
-        Usart_sendString("ADC: ");
-        n = utility_decimal2Buffer(adcValue, output);
-        Usart_sendArray(output, n);
-        Usart_sendString("\r\n");
+    //output the result....
+    Usart_sendString("ADC: ");
+    n = utility_decimal2Buffer(adcValue, output);
+    Usart_sendArray(output, n);
+    Usart_sendString("\r\n");
 
-        Usart_sendString("TEMP: ");
-        n = utility_decimal2Buffer(tempInt, output);
-        Usart_sendArray(output, n);
+    Usart_sendString("TEMP: ");
+    n = utility_decimal2Buffer(tempInt, output);
+    Usart_sendArray(output, n);
 
-        Usart_sendString(".");
-        n = utility_decimal2Buffer(tempFrac, output);
-        Usart_sendArray(output, n);
+    Usart_sendString(".");
+    n = utility_decimal2Buffer(tempFrac, output);
+    Usart_sendArray(output, n);
 
-        Usart_sendString("\r\n");
-    }
+    Usart_sendString("\r\n");
 }
 
 

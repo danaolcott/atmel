@@ -7,16 +7,11 @@ Dana Olcott
 
 NRF24L01 Transceiver Project - Repeater Mode
 
-Use existing nrf24l01 tx/rx project and add
-repeater mode.  The idea is that the radio 
-will be configured to listen for incoming 
-messages using the standard RX mode.  When a new
-message arrives, it will forward it out.
+Use existing nrf24l01 tx/rx project and add repeater mode.
+Repeater mode uses two states: RX and TX.  The radio normally
+listens in RX state.  When a new message arrives, it switches
+to TX state, forwards the messages, and returns back to RX state.
 
-Functions added for set channel (freq) so that
-it can listen on one channel and send on a different
-one.  This is so that there can be a main receiver
-that only listens for repeater signals.
 
 
 Pinout:

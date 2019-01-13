@@ -21,7 +21,7 @@ Dana Olcott
 #define NRF24_PIPE_WIDTH                ((uint8_t)8)
 #define NRF24_PIPE_WIDTH_MAX            ((uint8_t)32)
 
-#define NRF24_CHANNEL                   ((uint8_t)2)
+#define NRF24_CHANNEL_DEFAULT           ((uint8_t)2)
 
 
 ///////////////////////////////////////////////
@@ -141,8 +141,6 @@ typedef enum
     MID_TEMP_MCP9700A = 0x00      //Millivolts read by temp sensor
 }NRF24_MID_t;
 
-
-
 ////////////////////////////////////////////////
 //NRF24 Packet Definition
 //8 bytes
@@ -152,6 +150,25 @@ typedef enum
 //Bytes 3 - 6   Data Bytes          4 bytes of data
 //Byte 7        0xFE
 //
+//Struct Packet Entry
+typedef struct
+{
+    uint8_t index;
+    NRF24_MID_t MID;
+    void (*functionPtr) (uint8_t pipe, uint8_t* buffer, uint8_t size);
+}NRF24_PacketStruct;
+
+/*
+//PacketTable
+extern const NRF24_PacketStruct NRF24_PacketTable[];
+
+//functions - one for each entry in the packet table
+void pk_mcp9700a(uint8_t* buffer, uint8_t length);
+
+int nrf24_getPacketTableIndex(NRF24_MID_t mid);
+
+*/
+
 
 ////////////////////////////////////////////////
 //Prototypes
