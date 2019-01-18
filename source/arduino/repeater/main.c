@@ -113,8 +113,8 @@ int main()
     SPI_init();			            //init spi
     SPI_setSpeed(SPI_SPEED_1_MHZ);
     Usart_init(9600);    
- //   nrf24_init(NRF24_MODE_REPEATER);
-    nrf24_init(NRF24_MODE_RX);
+    nrf24_init(NRF24_MODE_REPEATER);
+//    nrf24_init(NRF24_MODE_RX);
 
     while(1)
     {
