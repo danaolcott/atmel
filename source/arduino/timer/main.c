@@ -15,6 +15,54 @@ function so we can get rid of the libs.
 
 Defines (see makefile)  __AVR_ATmega328P__
 Inludes:  /usr/lib/avr/include
+
+////////////////////////////////////////////
+update 1/17/19 - Add Timer 2 configured at 1000hz timeout
+with interrupt.  Similar setup as Timer0, Timer2 is an 8 bit 
+timer/counter, configurable with overflow interrupt.  
+
+Use the following registers - similar to Timer0
+TCNT2 - Timer/counter
+OCR2A - output compare register
+OCR2B - output compare register
+TIFR2 - Timer interrupt flag register
+TIMSK2 - Timer interrupt mask register
+
+
+TCCR2A - Timer/Counter control register
+        - leave this one alone
+
+TCCRB - Timer Control reg B
+        - update bits 0-2 only - clock
+        - probably the same as timer0
+
+TCNT2 - Timer/Counter register -
+        may need to update this one to 
+        fine tune freq.
+
+OCR2A / OCR2B - output compare - leave this alone
+
+TIMSK2 - Interrupt mask register - 
+        write 0x01 - enable the overflow
+        interrupt
+
+TIFR2 - Timer/Counter2 - interrupt flag
+        Bit 0 - set when overflow interrupt
+        occurs, cleared by hardware when executing the interrupt.
+ 
+
+
+
+        
+
+
+
+
+
+
+
+
+
 */
 ///////////////////////////////////////////////
 
@@ -46,12 +94,22 @@ Inludes:  /usr/lib/avr/include
 #define TCNT0_R          (*((volatile unsigned char*)0x46))
 #define TIFR0_R          (*((volatile unsigned char*)0x15))
 
+//Timer2
+#define TCCR2A_R         (*((volatile unsigned char*)0xB0))
+#define TCCR2B_R         (*((volatile unsigned char*)0xB1))
+#define TIMSK2_R         (*((volatile unsigned char*)0x70))
+#define TCNT2_R          (*((volatile unsigned char*)0xB2))
+#define TIFR2_R          (*((volatile unsigned char*)0x37))
+
+
+
 
 //////////////////////////////////////
 //prototypes
 void GPIO_init(void);
 void Interrupt_init(void);
 void Timer0_init(void);
+void Timer2_init(void);
 void Waste_CPU(unsigned int temp);
 void Dummy_Function(void);
 
@@ -101,7 +159,7 @@ ISR(INT0_vect)
 ISR(TIMER0_OVF_vect)
 {
     gTimeTick++;        //used by Delay
-    PINB_R |= 0x01;     //toggle PB0 (Pin 8)
+//    PINB_R |= 0x01;     //toggle PB0 (Pin 8)
 
     //clear interrupt - datasheet shows
     //this bit has to be set to run timer
@@ -110,6 +168,16 @@ ISR(TIMER0_OVF_vect)
 
 
 
+////////////////////////////////////
+//Timer2 Overflow interrupt ISR
+//Configured to run at 1khz - should
+//be the same as Timer0 speed
+ISR(TIMER2_OVF_vect)
+{
+    PINB_R |= 0x01;     //toggle PB0 (Pin 8)
+    TIFR2 |= 0x01;      //clear the interrupt flag    
+}
+
 
 ///////////////////////////////////////
 int main()
@@ -117,6 +185,7 @@ int main()
     GPIO_init();        //configure led and button
     Interrupt_init();   //falling edge trigger  
     Timer0_init();      //Timer0 Counter Overflow
+    Timer2_init();      //Timer2 Counter Overflow
  
     while(1)
     {
@@ -217,6 +286,43 @@ void Timer0_init(void)
 }
 
 
+
+
+//////////////////////////////////////////
+//Configure Timer2 with Overflow Interrupt
+//The configuration should be similar to Timer0
+//in that both are 8 bit and will also be 
+//configured to overflow at 1khz
+//
+void Timer2_init(void)
+{
+    //Timer Control - 2 registers:
+    TCCR2A_R = 0x00;      //disable all pin outputs on compare
+    TCCR2B_R = 0x04;      //set the prescaler - bits 0-2
+
+    //NOTE: Prescale values for Timer2 are not the same
+    //as Timer0.  ie, to get clk / 64, need to write 0x04
+
+    //    000 - no clock - timer disabled
+    //    001 - no prescale
+    //    010 - clk/8
+    //    011 - clk/32
+    //    100 - clk/64
+    //    101 - clk/128
+    //    110 - clk/256
+    //    111 - clk/1024
+
+    TIMSK2_R |= 0x01;       //bit 0 - overflow interrupt
+    TIFR2_R |= 0x01;        //clear the overflow flag
+
+    sei();                  //enable interrupts
+}
+
+
+
+
+
+
 /////////////////////////////////////
 void Waste_CPU(unsigned int temp)
 {
@@ -240,9 +346,9 @@ void Dummy_Function(void)
 void Flash0(void)
 {
     PORTB_DATA_R |= 1u << 5;
-    Delay(50);
+    Delay(500);
     PORTB_DATA_R &=~ 1u << 5;
-    Delay(50);
+    Delay(500);
 }
 
 //Flash 100ms
