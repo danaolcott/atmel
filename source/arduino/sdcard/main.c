@@ -71,7 +71,7 @@ ISR(TIMER0_OVF_vect)
 ISR(TIMER2_OVF_vect)
 {
     //fatfs timer management
-    disk_timerproc();
+ //   disk_timerproc();
 
     //clear interrupt - datasheet shows
     //this bit has to be set to run timer
@@ -113,6 +113,8 @@ ISR(USART_RX_vect)
 
 
 uint8_t buffer[100] = {0x00};
+uint8_t tx[2] = {0xAA, 0xCC};
+
 int n = 0;
 
 ///////////////////////////////////////
@@ -123,21 +125,28 @@ int main()
     Timer2_init();                  //Timer2 Counter Overflow
     SPI_init();			            //init spi
     Usart_init(9600);    
-    SD_Init();
+//    SD_Init();
 
     while(1)
     {
+
+        //void SPI_setSpeed(SPISpeed_t speed)
         LED_toggle();
 
-        n = sprintf(buffer, "Hello again....\r\n");
-        SD_AppendData("FILE1.TXT", buffer, n);
+        SPI_setSpeed(SPI_SPEED_125_KHZ);
+        SPI_writeArray(tx, 2);
+
+        SPI_setSpeed(SPI_SPEED_250_KHZ);
+        SPI_writeArray(tx, 2);
+
+        SPI_setSpeed(SPI_SPEED_1_MHZ);
+        SPI_writeArray(tx, 2);
+
+        SPI_setSpeed(SPI_SPEED_4_MHZ);
+        SPI_writeArray(tx, 2);
 
 
-    //    int SD_AppendData(char* name, uint8_t* data, uint32_t size);
-
-
-
-        Delay(1000);
+        Delay(100);
     }
 
 	return 0;
@@ -176,7 +185,7 @@ void GPIO_init(void)
 //    EIFR_R |= BIT1;
 
     //enable global interrupts - set the I-bit in SREG
-//    SREG_R |= 1u << 7;
+    SREG_R |= 1u << 7;
 
 //    sei();
 

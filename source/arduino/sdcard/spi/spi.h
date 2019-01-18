@@ -3,11 +3,12 @@
 
 #include <stdint.h>
 
-//#define SPI_CS_BIT			(1u << 2)
+//PB2 - Pin 10
+#define SPI_CS_BIT			(1u << 2)
 
 
 //Pin 4 - PD4
-#define SPI_CS_BIT			(1u << 4)
+//#define SPI_CS_BIT			(1u << 4)
 
 
 #define SPI_MOSI_BIT		(1u << 3)
