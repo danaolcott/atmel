@@ -15,7 +15,7 @@ void Usart_sendByte(unsigned char data);
 void Usart_sendString(char *data);
 void Usart_sendArray(unsigned char *data, unsigned int length);
 void Usart_processCommand(unsigned char *data, unsigned int length);
-void Usart_parseArgs(char *in, int *pargc, char** argv);
+//void Usart_parseArgs(char *in, int *pargc, char** argv);
 
 #endif
 

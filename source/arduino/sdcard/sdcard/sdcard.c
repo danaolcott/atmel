@@ -33,7 +33,7 @@ uint8_t SD_writeBuffer[SD_WRITE_BUFFER_SIZE];
 //////////////////////////////////////////////////
 //FATFS globals - accessed from sdcard_driver only
 
-FATFS fs32;     //mount this one
+volatile FATFS fs32;     //mount this one
 
 #if _USE_LFN
     static char lfn[_MAX_LFN + 1];
@@ -71,18 +71,18 @@ int SD_Init(void)
 
     //put sd card in idle state - result should be 0x01
     //if it worked.  
-    uint8_t status = SD_GoIdleState();
+//    uint8_t status = SD_GoIdleState();
 
     //mount the drive
     memset(&fs32, 0, sizeof(FATFS));
 
-    if (status != 0x01)
-    {
+//    if (status != 0x01)
+  //  {
         //invalid response, the valid response for
         //CMD0 is 0x01..  return -255
         //return value beyond range of fat error codes
-        return -255;
-    }
+   //     return -255;
+   // }
 
     res = f_mount(&fs32, "", 0);
    
@@ -95,15 +95,28 @@ int SD_Init(void)
 
     if (res == FR_OK)
     {
+        Usart_sendString("Fmount is FR OK\r\n");
         //drive mounte - build the sd card directory file
         //function returns the size of the directory
         //or the negative value of the error code
         //if something did not work.
         //
-//        int size = SD_BuildDirectory("DIR.TXT");
-        return 1;
+        //make a file
 
-//        return size;
+        //int SD_PrintFileToBuffer(char* name, uint8_t* dest, uint32_t maxbytes);
+
+//        int len = SD_PrintFileToBuffer("DIR.TXT", SD_readBuffer, 32);
+//        Usart_sendString("Reading DIR.TXT\r\n");
+
+ //       if (len > 64)
+ //           Usart_sendArray(SD_readBuffer, 64);
+ //       else
+  //          Usart_sendArray(SD_readBuffer, len);
+
+
+//        SD_FileCreate("IT_WORKS.TXT");
+
+        return 1;
     }
 
     return (-1*((int)res));
@@ -115,12 +128,58 @@ int SD_Init(void)
 
 ///////////////////////////////////////
 //Generic error handler
-//
+//Toggle Pin 8 a bunch of times
 void SD_ErrorHandler(FRESULT result)
 {
-      PORTB_DATA_R |= BIT0;
+    int i = 0;
+    uint8_t buffer[32];
+    int n = sprintf(buffer, "Error: %d\r\n", result);    
+    Usart_sendArray(buffer, n);
+
+    for (i = 0 ; i < 10 ; i++)
+    {
+        PORTB_DATA_R ^= BIT0;
+        SPI_delay(10);
+    }
 }
 
+
+//////////////////////////////////////////////
+//char* SD_GetStringFromFatCode(FRESULT result);
+//Get print string from FRESULT list
+//returns the string from the result
+/*
+char* SD_GetStringFromFatCode(FRESULT result)
+{
+	//scan the list of results and return the
+	//cooresponding string
+	switch(result)
+	{
+		case 	FR_OK:					return "Success\r\n";
+		case 	FR_DISK_ERR:			return "(1) A hard error occurred in the low level disk I/O layer\r\n";
+		case 	FR_INT_ERR:				return "(2) Assertion failed\r\n";
+		case	FR_NOT_READY:			return "(3) The physical drive cannot work\r\n";
+		case 	FR_NO_FILE:				return "(4) Could not find the file\r\n";
+		case	FR_NO_PATH:				return "(5) Could not find the path\r\n";
+		case 	FR_INVALID_NAME:		return "(6) The path name format is invalid\r\n";
+		case 	FR_DENIED:				return "(7) Access denied due to prohibited access or directory full\r\n";
+		case	FR_EXIST:				return "(8) Access denied due to prohibited access\r\n";
+		case 	FR_INVALID_OBJECT:		return "(9) The file/directory object is invalid\r\n";
+		case 	FR_WRITE_PROTECTED:		return "(10) The physical drive is write protected\r\n";
+		case 	FR_INVALID_DRIVE:		return "(11) The logical drive number is invalid\r\n";
+		case 	FR_NOT_ENABLED:			return "(12) The volume has no work area\r\n";
+		case 	FR_NO_FILESYSTEM:		return "(13) There is no valid FAT volume\r\n";
+		case 	FR_MKFS_ABORTED:		return "(14) The f_mkfs() aborted due to any parameter error\r\n";
+		case 	FR_TIMEOUT:				return "(15) Could not get a grant to access the volume within defined period\r\n";
+		case	FR_LOCKED:				return "(16) The operation is rejected according to the file sharing policy\r\n";
+		case 	FR_NOT_ENOUGH_CORE:		return "(17) LFN working buffer could not be allocated\r\n";
+		case 	FR_TOO_MANY_OPEN_FILES: return "(18) Number of open files > _FS_SHARE\r\n";
+		case 	FR_INVALID_PARAMETER:	return "(19) Given parameter is invalid\r\n";
+		default:						return "Unknown error, not listed in FRESULT\r\n";
+	}
+}
+
+*/
 
 
 
@@ -169,22 +228,24 @@ uint8_t SPI_receive()
 //******************************************************************
 unsigned char SD_GoIdleState()
 {
-  //  uint8_t buf[50];
-  //  int n;
+    uint8_t buf[64];
+    int n;
 
     //set the SPI speed to low
-    //void FCLK_SLOW(void);
-
     FCLK_SLOW();
     
     //void SPI_delay(unsigned long t)
-    SPI_delay(100000);                       //wait a bit
+    SPI_delay(1000000);                       //wait a bit
 
-    unsigned char i, response, retry=0;
+    uint8_t i = 0x00;
+    volatile uint8_t response = 0x00;
+    volatile uint8_t retry = 0x00;
+
+    Usart_sendString("SD_GoIdleState\r\n");
 
     SD_CS_Assert();
-    
-    do
+
+    while (response != 0x01)
     {
         //send 80 clock cycles
         for(i=0 ; i < 10 ; i++)
@@ -198,8 +259,8 @@ unsigned char SD_GoIdleState()
         response = SD_sendCommand(CMD0, 0);
 
         //print the response
-//        n = sprintf(buf, "Attempt: %d,  CMD: %d   Response: %d\r\n", retry, CMD0, response);
-//        uart_printArray(buf, n);
+        n = sprintf(buf, "Attempt: %d,  CMD: %d   Response: %d\r\n", retry, CMD0, response);
+        Usart_sendArray(buf, n);
 
         retry++;
 
@@ -207,12 +268,12 @@ unsigned char SD_GoIdleState()
         {
             //error, could not init the card, 
             //write something to the uart...
-//            uart_print("SD_Init: CMD0 - Failure to Receive 0x01\r\n");
+            Usart_sendString("SD_Init: CMD0 - Failure to Receive 0x01\r\n");
             return 0;
 
         }//time out
+    }
 
-    } while(response != 0x01);
 
     SD_CS_Deassart();
 
@@ -229,7 +290,8 @@ unsigned char SD_GoIdleState()
 unsigned char SD_sendCommand(unsigned char cmd, unsigned long arg)
 {
     unsigned char response, retry=0;
-   // uint8_t buf[50];
+    uint8_t buf[50];
+    int n = 0x00;
 
     SD_CS_Assert();
     
@@ -248,22 +310,23 @@ unsigned char SD_sendCommand(unsigned char cmd, unsigned long arg)
     while((response = SPI_receive()) == 0xff)
     {
         //print the command and response
-   //     int n = sprintf(buf, "CMD: 0x%x   RES: 0x%x\r\n", cmd, response);
-   //     uart_printArray(buf, n);
+        n = sprintf(buf, "CMD: 0x%x   RES: 0x%x\r\n", cmd, response);
+        Usart_sendArray(buf, n);
+
+        retry++;
 
         //wait response
-        if(retry++ > 0xfe)
+        if(retry > 0xfe)
         {
             //error - command failed 
-    //        uart_print("Command Failed - Continued RX 0xFF after 0xFE retries\r\n");
+            Usart_sendString("Command Failed - Continued RX 0xFF after 0xFE retries\r\n");
             break; //time out error
         }
     }
 
     //print the last response
-//    int n = sprintf(buf, "CMD: 0x%x   RES: 0x%x\r\n", cmd, response);
-//    uart_printArray(buf, n);
-
+    n = sprintf(buf, "CMD: 0x%x   RES: 0x%x\r\n", cmd, response);
+    Usart_sendArray(buf, n);
     
     SPI_receive(); //extra 8 CLK
     
@@ -600,6 +663,7 @@ int SD_PrintFileToBuffer(char* name, uint8_t* dest, uint32_t maxbytes)
             
         if (res == FR_OK)
         {
+            dest[bytesRead] = 0x00;
             //close file
             f_close(&fil);
             return (int)bytesRead;

@@ -47,7 +47,7 @@ SRCS=main.c ./spi/spi.c ./usart/usart.c
 SRCS+=./sdcard/sdcard.c
 SRCS+=./sdcard/diskio.c ./sdcard/ff.c ./sdcard/ffunicode.c 
 
-LINUX_PORT=/dev/ttyACM0
+LINUX_PORT=/dev/ttyACM6
 
 all:
 	${CC} ${CFLAGS} -o ${TARGET}.bin ${SRCS}

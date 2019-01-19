@@ -14,8 +14,8 @@
 #include "ff.h"         //FRESULT typdedefs
 //////////////////////////////////////////
 //Defines and externs
-#define SD_READ_BUFFER_SIZE    256
-#define SD_WRITE_BUFFER_SIZE   256
+#define SD_READ_BUFFER_SIZE    128
+#define SD_WRITE_BUFFER_SIZE   128
 
 extern uint8_t SD_readBuffer[SD_READ_BUFFER_SIZE];
 extern uint8_t SD_writeBuffer[SD_WRITE_BUFFER_SIZE];
@@ -33,6 +33,7 @@ extern uint8_t SD_writeBuffer[SD_WRITE_BUFFER_SIZE];
 
 int SD_Init(void);
 void SD_ErrorHandler(FRESULT result);       
+//char* SD_GetStringFromFatCode(FRESULT result);
 
 
 //lowest level spi functions

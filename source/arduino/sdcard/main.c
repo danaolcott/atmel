@@ -71,7 +71,7 @@ ISR(TIMER0_OVF_vect)
 ISR(TIMER2_OVF_vect)
 {
     //fatfs timer management
- //   disk_timerproc();
+    disk_timerproc();
 
     //clear interrupt - datasheet shows
     //this bit has to be set to run timer
@@ -113,10 +113,8 @@ ISR(USART_RX_vect)
 
 
 uint8_t buffer[100] = {0x00};
-uint8_t tx[2] = {0xAA, 0xCC};
-
 int n = 0;
-
+unsigned char res = 0x00;
 ///////////////////////////////////////
 int main()
 {
@@ -124,29 +122,43 @@ int main()
     Timer0_init();                  //Timer0 Counter Overflow
     Timer2_init();                  //Timer2 Counter Overflow
     SPI_init();			            //init spi
-    Usart_init(9600);    
+    Usart_init(115200);    
 //    SD_Init();
+
+    Delay(1000);
+
+    //make it go idle
+    res = SD_GoIdleState();
+
+    if (res == 1)
+    {
+        //normal return from sd go idle
+        Usart_sendString("SD Go Idle - normal return.... calling sd init\r\n");
+        Delay(1000);
+        n = SD_Init();
+
+        if (n == 1)
+        {
+            Usart_sendString("SD_Init returned successfully\r\n");
+        }
+    }
+
+
+
+//    n = sprintf(buffer, "Hello into file 1\r\n");
+//    SD_AppendData("FILE1.TXT", buffer, n);
 
     while(1)
     {
-
-        //void SPI_setSpeed(SPISpeed_t speed)
         LED_toggle();
+        
+        //int SD_PrintFileToBuffer(char* name, uint8_t* dest, uint32_t maxbytes);
 
-        SPI_setSpeed(SPI_SPEED_125_KHZ);
-        SPI_writeArray(tx, 2);
+        n = SD_PrintFileToBuffer("HELLO.TXT", buffer, 100);
 
-        SPI_setSpeed(SPI_SPEED_250_KHZ);
-        SPI_writeArray(tx, 2);
+        Usart_sendArray(buffer, n);
 
-        SPI_setSpeed(SPI_SPEED_1_MHZ);
-        SPI_writeArray(tx, 2);
-
-        SPI_setSpeed(SPI_SPEED_4_MHZ);
-        SPI_writeArray(tx, 2);
-
-
-        Delay(100);
+        Delay(500);
     }
 
 	return 0;

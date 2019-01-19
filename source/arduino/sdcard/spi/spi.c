@@ -98,6 +98,9 @@ void SPI_init(void)
 	while (!(SPI_STATUS_R & SPI_IF_BIT)){}
 	SPI_delay(1000);			//wait a bit...
 
+	SPI_delay(10000);			//wait a bit...
+    SPI_setSpeed(SPI_SPEED_250_KHZ);
+	SPI_delay(10000);			//wait a bit...
 }
 
 
@@ -211,7 +214,7 @@ void SPI_select(void)
 //PB2 - pin 10 - normal
 void SPI_deselect(void)
 {
-//   PORTD_DATA_R |= SPI_CS_BIT;
+ //  PORTD_DATA_R |= SPI_CS_BIT;
    PORTB_DATA_R |= SPI_CS_BIT;
 }
 
