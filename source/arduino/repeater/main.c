@@ -17,6 +17,9 @@ to TX state, forwards the messages, and returns back to RX state.
 Pinout:
 SPI - pins 10-13 (PB2 - PB5)
 LED - PB0 - Pin 8
+LED - PD7 - Pin 7
+CS Pin - EEPROM - PD6 - Pin 6
+
 IRQ Pin - PD2 (Pin 2) - INT0 - Interrupt, falling edge, pullup
 
 Control Lines:
@@ -38,13 +41,19 @@ INT1 - PD3 - Also config as interrupt, falling, pullup
 #include "spi.h"
 #include "nrf24l01.h"
 #include "usart.h"
+#include "eeprom.h"
 
 //////////////////////////////////////
 //prototypes
 void GPIO_init(void);
-void LED_on(void);
-void LED_off(void);
-void LED_toggle(void);
+void LED_BlueOn(void);
+void LED_BlueOff(void);
+void LED_BlueToggle(void);
+
+void LED_RedOn(void);
+void LED_RedOff(void);
+void LED_RedToggle(void);
+
 void Timer0_init(void);
 void Interrupt_init(void);
 
@@ -112,25 +121,75 @@ int main()
     Timer0_init();                  //Timer0 Counter Overflow
     SPI_init();			            //init spi
     SPI_setSpeed(SPI_SPEED_1_MHZ);
-    Usart_init(9600);    
+    Usart_init(9600);
     nrf24_init(NRF24_MODE_REPEATER);
 //    nrf24_init(NRF24_MODE_RX);
 
+    eeprom_init();
+
+
+    //test while loop for testing the spi eeprom
+    uint8_t tx1[16] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF, 0x01, 0x02, 0x03, 0x04};
+    uint8_t rx1[16] = {0x00};
+
+    while (1)
+    {
+
+        LED_RedOn();
+        LED_BlueOff();
+
+        //write something
+        for (int i = 0 ; i < PAGE_MAX + 1 ; i++)
+        {
+            eeprom_writePage(i, tx1, 16);
+        }
+
+        LED_RedOff();
+        Delay(1000);
+
+        //read it back
+        for (int i = 0 ; i < PAGE_MAX + 1 ; i++)
+        {
+            eeprom_readPage(i, rx1);
+
+            //compare - compare several bytes in each page
+            if (rx1[i] == tx1[i])
+            {
+                LED_BlueOff();
+                LED_RedOn();
+            }
+            else
+            {
+                LED_BlueOn();
+                LED_RedOff();
+            }
+        }
+
+        Delay(1000);
+
+    }
+
+
+
+/*
+
     while(1)
     {
-        LED_toggle();
+        LED_Redoggle();
 
         //Mode: NRF24_MODE_REPEATER
         if (nrf24_getMode() == NRF24_MODE_REPEATER)
         {
             if (nrf24_getRepeaterFlag() == 1)
             {
+                LED_BlueOn();
                 Usart_sendString("Repeater: Flag Set - Forward Packet\r\n");
                 uint8_t size = nrf24_getRepeaterBuffer(forwardBuffer);      //load the contents
                 nrf24_setState(NRF24_STATE_TX);                             //set to tx state
                 nrf24_transmitData(8, forwardBuffer, size);                 //send the data
                 nrf24_setState(NRF24_STATE_RX);                             //return to rx state
                 nrf24_setRepeaterFlag(0);                                   //clear the flag
+                LED_BlueOff();
             }
 
             if (!(loopCounter % 10))
@@ -147,13 +206,14 @@ int main()
         {
             //send something
         }
-
-       
-
+      
         loopCounter++;
         Delay(500);
+
+
     }
 
+*/
 	return 0;
 }
 
@@ -168,10 +228,16 @@ int main()
 void GPIO_init(void)
 {   
     //////////////////////////////////
-    //User LED
+    //User LED1
     //Pin 8 - PB0
     PORTB_DIR_R |= BIT0; 	//pin 8 as output
     PORTB_DATA_R &=~ BIT0;	//clear pin 8
+
+    //User LED RED
+    //Pin 7 - PD7
+    PORTD_DIR_R |= BIT7; 	//pin 8 as output
+    PORTD_DATA_R &=~ BIT7;	//clear pin 8
+
 
     //////////////////////////////////////
     //User Button
@@ -197,20 +263,37 @@ void GPIO_init(void)
 }
 
 
-void LED_on(void)
+void LED_BlueOn(void)
 {
-  PORTB_DATA_R |= BIT0;
+    PORTB_DATA_R |= BIT0;
 }
 
-void LED_off(void)
+void LED_BlueOff(void)
 {
-  PORTB_DATA_R &=~ BIT0;
+    PORTB_DATA_R &=~ BIT0;
 }
 
-void LED_toggle(void)
+void LED_BlueToggle(void)
 {
-  PORTB_DATA_R ^= BIT0;
+    PORTB_DATA_R ^= BIT0;
 }
+
+void LED_RedOn(void)
+{
+    PORTD_DATA_R |= BIT7;
+}
+
+void LED_RedOff(void)
+{
+    PORTD_DATA_R &=~ BIT7;
+}
+
+void LED_RedToggle(void)
+{
+    PORTD_DATA_R ^= BIT7;
+}
+
+
 
 //////////////////////////////////////////
 //Configure Timer0 with Overflow Interrupt

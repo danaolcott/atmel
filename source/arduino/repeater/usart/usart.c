@@ -73,9 +73,6 @@ void Usart_init(unsigned long baud)
         }
     }
 
-    
-
-
     //UCSR0B_R - 0xC1 - config interrupts and tx/rx enable
     //bit 7 - RX complete interrupt enable - set high
     //bit 6 - tx complete interrupt - 0
@@ -203,30 +200,16 @@ void Usart_processCommand(unsigned char *data, unsigned int length)
             data[i] = 0x00;
     }
 
-    Usart_sendString("Orig Rx String: ");
-    Usart_sendArray(data, length);
-    Usart_sendString("\r\n");
-
-
     //parse data* into argv argc
     Usart_parseArgs((char*)data, &argc, argv);
 
     //pass argv/arc into the cli table
     result = Command_ExeCommand(argc, argv);
 
-    if (result >= 0)
-    {
-        i = sprintf(outBuffer, "Success: Elem: %d\r\n", result);
-        Usart_sendArray((unsigned char*)outBuffer, i);    
-    }
-    else
+    if (result < 0)
     {
         Usart_sendString("Error No Match\r\n");
     }
-
-
-
-
 }
 
 

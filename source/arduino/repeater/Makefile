@@ -37,6 +37,7 @@ CFLAGS+=-I./usart/
 CFLAGS+=-I./nrf24l01/
 CFLAGS+=-I./utility/
 CFLAGS+=-I./command/
+CFLAGS+=-I./memory/
 
 #CFLAGS=-std=c99 -Wall -c -fmessage-length=0 -g -Os -mmcu=${MCU} -DF_CPU=${F_CPU} -D${STDLIB} -I. -I${IDIR}
 #CFLAGS+=-I./usart/
@@ -47,7 +48,7 @@ CFLAGS+=-I./command/
 TARGET=main
 #SRCS=main.c ./usart/usart.c ./command/command.c
 SRCS=main.c ./spi/spi.c ./usart/usart.c ./nrf24l01/nrf24l01.c
-SRCS+=./utility/utility.c ./command/command.c
+SRCS+=./utility/utility.c ./command/command.c ./memory/eeprom.c
 
 
 LINUX_PORT=/dev/ttyACM0

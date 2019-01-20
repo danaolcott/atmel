@@ -5,27 +5,24 @@
 #include "command.h"
 #include "usart.h"
 #include "nrf24l01.h"
-
+#include "eeprom.h"
 
 ///////////////////////////////////////////////
 //static function prototype defs
 //see below for function definitions
 static void cmdHelp(int argc, char** argv);
-static void cmdFunction1(int argc, char** argv);
-static void cmdFunction2(int argc, char** argv);
-static void cmdFunction3(int argc, char** argv);
+static void cmdEEPROMRead(int argc, char** argv);
 
 
 
 ////////////////////////////////////////////
 //CommandStruct commandTable
 
-static const CommandStruct commandTable[5] = 
+static const CommandStruct commandTable[3] = 
 {
     {"?",       "Print Help",   cmdHelp},
-    {"string1", "menu string1", cmdFunction1},
-    {"string2", "menu string1", cmdFunction2},
-    {"string3", "menu string2", cmdFunction3},
+    {"eeprom", "write eeprom to uart", cmdEEPROMRead},
+
     {NULL, NULL, NULL},
 };
 
@@ -38,29 +35,33 @@ void cmdHelp(int argc, char** argv)
 }
 
 
-/////////////////////////////////////
-//Send test string to nrf24l01
-//0xFE, .......
-void cmdFunction1(int argc, char** argv)
-{
-    uint8_t tx[8] = {0xFE, 0xFE, 0xFE, 0xFE,0xFE, 0xFE, 0xFE,0x01}; 
-    nrf24_transmitData(0, tx, 8);
-    Usart_sendString("FE in beginning  Hello From Handler Function 1!!\r\n");
 
+
+//////////////////////////////////////////////
+//Print the contents of pages 0 - 15 out to
+//usart.
+void cmdEEPROMRead(int argc, char** argv)
+{
+    uint8_t length = 0x00;
+    uint8_t buffer[128] = {0x00};
+    uint8_t rxBuffer[PAGE_SIZE];
+    int i, n = 0;
+    Usart_sendString("Print Contents of EEPROM to USART\r\n");
+
+    for (i = 0 ; i < PAGE_MAX + 1 ; i++)
+    {
+        eeprom_readPage(i, rxBuffer);
+
+        //rxBuffer holds the eeprom contents, buffer is the 
+        //readable form for rxBuffer
+        length =  utility_data2HexBuffer(rxBuffer, PAGE_SIZE, buffer);
+
+        Usart_sendArray(buffer, length);
+        Usart_sendString("\r\n");
+       
+    }
 }
 
-void cmdFunction2(int argc, char** argv)
-{
-    uint8_t tx[8] = {0x01, 0xFE, 0xFE, 0xFE,0xFE, 0xFE, 0xFE,0xFE}; 
-    nrf24_transmitData(0, tx, 8);
-    Usart_sendString("FE  in end  Hello From Handler Function 2!!\r\n");
-}
-
-
-void cmdFunction3(int argc, char** argv)
-{
-    Usart_sendString("Hello From Handler Function 3!!\r\n");
-}
 
 
 /////////////////////////////////////////////
