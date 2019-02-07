@@ -16,8 +16,6 @@ idle clock low, data on a leading edge.
 
 
 NOTE:
-When testing the sdcard, i'm using the ethernet
-shield, which uses Pin 4 as the CS pin.
 
 
 Change clock speed with spi_setSpeed, configurable
@@ -52,12 +50,12 @@ void SPI_init(void)
 	//config pin directions per datasheet
 
 	//Pin 10 - pb2 cs pin - normal io
-//	PORTB_DIR_R |= SPI_CS_BIT;		//pb2 - pin 10
+	PORTB_DIR_R |= SPI_CS_BIT;		//pb2 - pin 10
 	PORTB_DIR_R |= SPI_MOSI_BIT;	//pb3 - pin 11
 	PORTB_DIR_R &=~ SPI_MISO_BIT;	//pb4 - pin 12
 	PORTB_DIR_R |= SPI_SCK_BIT;		//pb5 - pin 13
 
-//	PORTB_DATA_R |= SPI_CS_BIT;   	 //set high
+	PORTB_DATA_R |= SPI_CS_BIT;   	 //set high
 	PORTB_DATA_R &=~ SPI_MOSI_BIT;   //set low
 	PORTB_DATA_R &=~ SPI_MISO_BIT;   //set low
 	PORTB_DATA_R &=~ SPI_SCK_BIT;    //set low
@@ -65,8 +63,8 @@ void SPI_init(void)
 
     //Use Pin 4 - PD4 as CS - config as output
     //and set high
-	PORTD_DIR_R |= SPI_CS_BIT;		//pd4 - pin 4
-	PORTD_DATA_R |= SPI_CS_BIT;   	 //set high
+//	PORTD_DIR_R |= SPI_CS_BIT;		//pd4 - pin 4
+//	PORTD_DATA_R |= SPI_CS_BIT;   	 //set high
 
 
 
@@ -80,7 +78,7 @@ void SPI_init(void)
 	//10 - 64
 	//11 - 128
 
-	//prescale = 16
+	//prescale = 16 - 1mhz
 	SPI_CONTROL_R |= BIT0;
 	SPI_CONTROL_R &=~ BIT1;
 
@@ -100,27 +98,32 @@ void SPI_init(void)
 	while (!(SPI_STATUS_R & SPI_IF_BIT)){}
 	SPI_delay(1000);			//wait a bit...
 
+	SPI_delay(10000);			//wait a bit...
+    SPI_setSpeed(SPI_SPEED_250_KHZ);
+	SPI_delay(10000);			//wait a bit...
 }
 
 
 //////////////////////////////////
 //Configure the clock speed.
+//No need to disable the spi to 
+//change the speed.  disabling it pulls the 
+//data line low for a short period.
 //
 void SPI_setSpeed(SPISpeed_t speed)
 {
-	SPI_CONTROL_R &=~ BIT6;		//disable spi
-	SPI_CONTROL_R &=~ 0x03;		//clear speed bits
+    uint8_t temp = SPI_CONTROL_R;       //current
+    temp &=~ 0x03;                      //clear the speed bits
 
 	switch(speed)
 	{
-		case SPI_SPEED_4_MHZ:	SPI_CONTROL_R |= 0x00;	break;	//prescale 4
-		case SPI_SPEED_1_MHZ:	SPI_CONTROL_R |= 0x01;	break;	//prescale 16
-		case SPI_SPEED_250_KHZ:	SPI_CONTROL_R |= 0x02;	break;	//prescale 64
-		case SPI_SPEED_125_KHZ:	SPI_CONTROL_R |= 0x03;	break;	//prescale 128
+		case SPI_SPEED_4_MHZ:	temp |= 0x00;	break;	//prescale 4
+		case SPI_SPEED_1_MHZ:	temp |= 0x01;	break;	//prescale 16
+		case SPI_SPEED_250_KHZ:	temp |= 0x02;	break;	//prescale 64
+		case SPI_SPEED_125_KHZ:	temp |= 0x03;	break;	//prescale 128
 	}
 
-	SPI_CONTROL_R |= BIT6;		//enable spi
-
+    SPI_CONTROL_R = temp;               //set updated speed bits
 }
 
 
@@ -195,17 +198,24 @@ uint8_t spi_readData(uint8_t cmd, uint16_t address)
 
 ////////////////////////////////
 //CS pin low - Pin 4
+//PD4 - ethernet shield
+//PB2 - pin 10 - normal
+
 void SPI_select(void)
 {
-   PORTD_DATA_R &=~ SPI_CS_BIT;
+//   PORTD_DATA_R &=~ SPI_CS_BIT;
+   PORTB_DATA_R &=~ SPI_CS_BIT;
 }
 
 
 ////////////////////////////////
 //CS pin high - Pin 4
+//PD4 - ethernet shield
+//PB2 - pin 10 - normal
 void SPI_deselect(void)
 {
-   PORTD_DATA_R |= SPI_CS_BIT;
+ //  PORTD_DATA_R |= SPI_CS_BIT;
+   PORTB_DATA_R |= SPI_CS_BIT;
 }
 
 //////////////////////////////

@@ -11,10 +11,7 @@
 #include "usart.h"
 
 static volatile unsigned char rxIndex = 0x00;
-static volatile unsigned char rxActiveBuffer = 0;
-static volatile unsigned char rxBuffer0[RX_BUFFER_SIZE];
-static volatile unsigned char rxBuffer1[RX_BUFFER_SIZE];
-
+static volatile unsigned char rxBuffer[RX_BUFFER_SIZE];
 
 
 ///////////////////////////////////////
@@ -29,10 +26,7 @@ void Usart_init(unsigned long baud)
 {
 
     rxIndex = 0x00;
-    rxActiveBuffer = 0;
-    memset((char*)rxBuffer0, 0x00, RX_BUFFER_SIZE);
-    memset((char*)rxBuffer1, 0x00, RX_BUFFER_SIZE);
-
+    memset((char*)rxBuffer, 0x00, RX_BUFFER_SIZE);
 
     //configure the baud rate
     UBRR0H_R = 0x00;
@@ -113,33 +107,14 @@ void Usart_isr(unsigned char c)
 {
     if ((c != 0x00) && (rxIndex < (RX_BUFFER_SIZE - 1)))
     {
-        if (!rxActiveBuffer)
-            rxBuffer0[rxIndex] = c;
-        else
-            rxBuffer1[rxIndex] = c;
-
-        rxIndex++;
+        rxBuffer[rxIndex++] = c;
 
         //test char c for \n
         if (c == '\n')
         {
-            if (!rxActiveBuffer)
-            {
-                rxBuffer0[rxIndex] = 0x00;    
-                Usart_processCommand((unsigned char*)rxBuffer0, rxIndex);                
-                rxActiveBuffer = 1;
+                rxBuffer[rxIndex] = 0x00;    
+                Usart_processCommand((unsigned char*)rxBuffer, rxIndex);                
                 rxIndex = 0x00;
-                memset((char*)rxBuffer1, 0x00, RX_BUFFER_SIZE);
-            }
-
-            else
-            {
-                rxBuffer1[rxIndex] = 0x00;
-                Usart_processCommand((unsigned char*)rxBuffer1, rxIndex);                
-                rxActiveBuffer = 0;
-                rxIndex = 0x00;
-                memset((char*)rxBuffer0, 0x00, RX_BUFFER_SIZE);
-            }
         }
     }
 }
@@ -184,75 +159,10 @@ void Usart_sendArray(unsigned char *data, unsigned int length)
 //and get num args.
 void Usart_processCommand(unsigned char *data, unsigned int length)
 {
-	//arg buffs, ptr and size
-	char* argv[ARG_BUFFER_SIZE];
-	int i, argc = 0;
-    int result = 0x00;
-    char outBuffer[64];
-
-	memset(argv, 0x00, ARG_BUFFER_SIZE);
-
-    //clean up array by removing \r\n
-    for (i = 0 ; i < length ; i++)
-    {
-        if ((data[i] == '\r') || (data[i] == '\n'))
-            data[i] = 0x00;
-    }
-
-    Usart_sendString("Orig Rx String: ");
+    Usart_sendString("RX: ");
     Usart_sendArray(data, length);
     Usart_sendString("\r\n");
-
-
-    //parse data* into argv argc
-    Usart_parseArgs((char*)data, &argc, argv);
-
-    //pass argv/arc into the cli table
- //   result = Command_ExeCommand(argc, argv);
-
-/*
-    if (result >= 0)
-    {
-        i = sprintf(outBuffer, "Success: Elem: %d\r\n", result);
-        Usart_sendArray((unsigned char*)outBuffer, i);    
-    }
-    else
-    {
-        Usart_sendString("Error No Match\r\n");
-    }
-
-*/
-
-
 }
-
-
-/////////////////////////////////////////
-//parse input buffer into args by replacing
-//all white space with null chars, and 
-//populating array of pointers pointing
-//to each arg.
-//
-void Usart_parseArgs(char *in, int *pargc, char** argv)
-{
-	int argc = 0;
-	char* ptr;
-
-	//get the first arg - pass input buffer
-	ptr = strtok(in, " ,.-");
-	argv[argc++] = ptr;
-
-	//subsequent args, pass NULL
-	while ((ptr != NULL) && (argc < ARG_BUFFER_SIZE))
-	{
-		ptr = strtok(NULL, " ,.-");
-		if(ptr != NULL)
-			argv[argc++] = ptr;
-	}
-
-	*pargc = argc;
-}
-
 
 
 

@@ -114,7 +114,7 @@ ISR(USART_RX_vect)
 
 uint8_t buffer[100] = {0x00};
 int n = 0;
-
+unsigned char res = 0x00;
 ///////////////////////////////////////
 int main()
 {
@@ -122,22 +122,43 @@ int main()
     Timer0_init();                  //Timer0 Counter Overflow
     Timer2_init();                  //Timer2 Counter Overflow
     SPI_init();			            //init spi
-    Usart_init(9600);    
-    SD_Init();
+    Usart_init(115200);    
+//    SD_Init();
+
+    Delay(1000);
+
+    //make it go idle
+    res = SD_GoIdleState();
+
+    if (res == 1)
+    {
+        //normal return from sd go idle
+        Usart_sendString("SD Go Idle - normal return.... calling sd init\r\n");
+        Delay(1000);
+        n = SD_Init();
+
+        if (n == 1)
+        {
+            Usart_sendString("SD_Init returned successfully\r\n");
+        }
+    }
+
+
+
+//    n = sprintf(buffer, "Hello into file 1\r\n");
+//    SD_AppendData("FILE1.TXT", buffer, n);
 
     while(1)
     {
         LED_toggle();
+        
+        //int SD_PrintFileToBuffer(char* name, uint8_t* dest, uint32_t maxbytes);
 
-        n = sprintf(buffer, "Hello again....\r\n");
-        SD_AppendData("FILE1.TXT", buffer, n);
+        n = SD_PrintFileToBuffer("HELLO.TXT", buffer, 100);
 
+        Usart_sendArray(buffer, n);
 
-    //    int SD_AppendData(char* name, uint8_t* data, uint32_t size);
-
-
-
-        Delay(1000);
+        Delay(500);
     }
 
 	return 0;
@@ -176,7 +197,7 @@ void GPIO_init(void)
 //    EIFR_R |= BIT1;
 
     //enable global interrupts - set the I-bit in SREG
-//    SREG_R |= 1u << 7;
+    SREG_R |= 1u << 7;
 
 //    sei();
 
