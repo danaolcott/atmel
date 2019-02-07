@@ -123,97 +123,31 @@ int main()
     SPI_setSpeed(SPI_SPEED_1_MHZ);
     Usart_init(9600);
     nrf24_init(NRF24_MODE_REPEATER);
-//    nrf24_init(NRF24_MODE_RX);
-
-    eeprom_init();
-
-
-    //test while loop for testing the spi eeprom
-    uint8_t tx1[16] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF, 0x01, 0x02, 0x03, 0x04};
-    uint8_t rx1[16] = {0x00};
-
-    while (1)
-    {
-
-        LED_RedOn();
-        LED_BlueOff();
-
-        //write something
-        for (int i = 0 ; i < PAGE_MAX + 1 ; i++)
-        {
-            eeprom_writePage(i, tx1, 16);
-        }
-
-        LED_RedOff();
-        Delay(1000);
-
-        //read it back
-        for (int i = 0 ; i < PAGE_MAX + 1 ; i++)
-        {
-            eeprom_readPage(i, rx1);
-
-            //compare - compare several bytes in each page
-            if (rx1[i] == tx1[i])
-            {
-                LED_BlueOff();
-                LED_RedOn();
-            }
-            else
-            {
-                LED_BlueOn();
-                LED_RedOff();
-            }
-        }
-
-        Delay(1000);
-
-    }
-
-
-
-/*
 
     while(1)
     {
-        LED_Redoggle();
+        if (!(loopCounter % 10))
+            LED_RedToggle();
 
         //Mode: NRF24_MODE_REPEATER
         if (nrf24_getMode() == NRF24_MODE_REPEATER)
         {
             if (nrf24_getRepeaterFlag() == 1)
             {
-                LED_BlueOn();
-                Usart_sendString("Repeater: Flag Set - Forward Packet\r\n");
+                LED_BlueOn();                                               //enable led (turned off in the tx function)
                 uint8_t size = nrf24_getRepeaterBuffer(forwardBuffer);      //load the contents
                 nrf24_setState(NRF24_STATE_TX);                             //set to tx state
                 nrf24_transmitData(8, forwardBuffer, size);                 //send the data
                 nrf24_setState(NRF24_STATE_RX);                             //return to rx state
                 nrf24_setRepeaterFlag(0);                                   //clear the flag
-                LED_BlueOff();
             }
-
-            if (!(loopCounter % 10))
-                Usart_sendString("Waiting for Incoming Data...\r\n");
-        }
-
-        else if (nrf24_getMode() == NRF24_MODE_RX)
-        {
-            if (!(loopCounter % 10))
-                Usart_sendString("Waiting for Incoming Data...\r\n");
-        }
-
-        else if (nrf24_getMode() == NRF24_MODE_TX)
-        {
-            //send something
         }
       
         loopCounter++;
-        Delay(500);
-
+        Delay(50);
 
     }
 
-*/
 	return 0;
 }
 

@@ -546,7 +546,7 @@ void nrf24_writeTXPayLoad(uint8_t* buffer, uint8_t length)
 //Uses TX_DS interrupt to set the transmit complete flag
 //The flag is polled along with a timeout in case the
 //interrupt fails.  If radio is in repeater mode, return
-//to receiving.  
+//to receiving.
 void nrf24_transmitData(uint8_t pipe, uint8_t* buffer, uint8_t length)
 {
     uint16_t timeout = NRF24_TX_TIMEOUT;    //reset the counter    
@@ -571,21 +571,16 @@ void nrf24_transmitData(uint8_t pipe, uint8_t* buffer, uint8_t length)
     //if timeout == 0 or transmit complete flag
     if ((!timeout) || (!mTransmitCompleteFlag))
     {
-        Usart_sendString("Timeout - Counter Expired - Transmit Aborted\r\n");
         mTransmitCompleteFlag = 0x00;
         nrf24_flushTx();
         nrf24_writeReg(NRF24_REG_STATUS, NRF24_BIT_TX_DS | NRF24_BIT_MAX_RT);
     }
-    
+
+    //turn off the blue led, it was turned on in the main polling loop
+    //this flag is set in the isr
     else if (mTransmitCompleteFlag == 1)
     {
-        Usart_sendString("Polling - Transmit Complete: ");
-
-        //convert the buffer to a hex output buffer
-        //            n = utility_data2HexBuffer(rxBuffer, 8, output);
-        int n = utility_data2HexBuffer(buffer, length, hexBuffer);
-        Usart_sendArray(hexBuffer, n);
-        Usart_sendString("\r\n");
+        LED_BlueOff();
     }
     
     else
@@ -598,7 +593,7 @@ void nrf24_transmitData(uint8_t pipe, uint8_t* buffer, uint8_t length)
     if (nrf24_getStatus() & (NRF24_BIT_TX_DS | NRF24_BIT_TX_DS ))
     {
         //tx ds bit high - clearing it
-        Usart_sendString("TX_DS and or MAX_RT Bit(s) High - Clearing It...\r\n");
+//        Usart_sendString("TX_DS and or MAX_RT Bit(s) High - Clearing It...\r\n");
         nrf24_writeReg(NRF24_REG_STATUS, NRF24_BIT_TX_DS | NRF24_BIT_MAX_RT);
     }   
 
@@ -760,15 +755,6 @@ void nrf24_ISR(void)
         while (nrf24_RxFifoHasData())
         {
             len = nrf24_readRxData(rxBuffer, &pipe);            //read the packet and pipe
-
-            //output result
-            n = sprintf(output, "RX(%d): ", pipe);
-            Usart_sendArray(output, n);                   //forward it to the uart
-
-            n = utility_data2HexBuffer(rxBuffer, NRF24_PIPE_WIDTH, output);
-            Usart_sendArray(output, n);                   //forward it to the uart
-
-            Usart_sendString("\r\n");
             
             //Test for a valid packet
             if ((rxBuffer[0] == 0xFE) && (rxBuffer[NRF24_PIPE_WIDTH - 1] == 0xFE))
@@ -778,15 +764,6 @@ void nrf24_ISR(void)
                 //polling in the main loop
                 if (mNRF24_Mode == NRF24_MODE_REPEATER)
                 {
-                    Usart_sendString("Repeater::Forwarding:: ");
-
-                    n = sprintf(output, "RX(%d): ", pipe);
-                    Usart_sendArray(output, n);                   //forward it to the uart
-
-                    n = utility_data2HexBuffer(rxBuffer, NRF24_PIPE_WIDTH, output);
-                    Usart_sendArray(output, n);                   //forward it to the uart
-                    Usart_sendString("\r\n");
-
                     rxBuffer[1] = STATION_REPEATER_1;       //update the source
                     memcpy(mRepeaterBuffer, rxBuffer, NRF24_PIPE_WIDTH);   //copy the buffer
                     mRepeaterFlag = 1;                      //set the flag - polled in main loop
